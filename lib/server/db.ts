@@ -1,4 +1,5 @@
 import fs from "fs";
+import os from "os";
 import path from "path";
 import {
   Shop,
@@ -45,6 +46,10 @@ export interface SharedDB {
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
+// Read-only hosts (e.g. Netlify lambdas) can't write to the deploy dir, so
+// writes fall back to a per-instance scratch file in the OS temp dir.
+const TMP_PATH = path.join(os.tmpdir(), "kasi-connect-db.json");
+let writePath = DB_PATH;
 
 function seedDB(): SharedDB {
   return {
@@ -99,6 +104,20 @@ function ensureAccounts(db: SharedDB): { db: SharedDB; changed: boolean } {
 // module-level cache so repeated reads in the same process don't hit disk every time
 let cache: SharedDB | null = null;
 
+/** Best-effort disk write: deploy dir first, then the OS temp dir. Never throws on success of caching alone. */
+function persistToDisk(db: SharedDB): void {
+  const json = JSON.stringify(db, null, 2);
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(writePath, json, "utf-8");
+  } catch {
+    // read-only deploy dir — retry into the temp dir (writable on lambdas)
+    fs.mkdirSync(path.dirname(TMP_PATH), { recursive: true });
+    fs.writeFileSync(TMP_PATH, json, "utf-8");
+    writePath = TMP_PATH;
+  }
+}
+
 export function readDB(): SharedDB {
   if (cache) return cache;
   try {
@@ -110,9 +129,9 @@ export function readDB(): SharedDB {
       // keep db.json in step with the migration — a read-only filesystem just
       // keeps serving the in-memory copy for the life of this process
       try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(migrated, null, 2), "utf-8");
+        persistToDisk(migrated);
       } catch {
-        // ignore
+        // fully read-only environment — memory-only mode
       }
     }
     return cache;
@@ -129,10 +148,19 @@ export function readDB(): SharedDB {
   }
 }
 
+/**
+ * Updates the in-memory cache always, and the disk only where the filesystem
+ * allows it (locally: data/db.json; on serverless hosts: a per-instance temp
+ * file at best). Netlify/Vercel state therefore resets on cold starts — the
+ * seed data ships in the bundle so the app is always fully usable.
+ */
 export function writeDB(db: SharedDB): void {
   cache = db;
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+  try {
+    persistToDisk(db);
+  } catch {
+    // memory-only mode
+  }
 }
 
 export function resetDB(): SharedDB {

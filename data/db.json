@@ -1,0 +1,1028 @@
+{
+  "shops": [
+    {
+      "id": "shop-thandi",
+      "ownerId": "owner-thandi",
+      "name": "Thandi's Spaza",
+      "ownerName": "Thandi Nkosi",
+      "phone": "071 234 5678",
+      "category": "spaza",
+      "township": "Mamelodi",
+      "lat": -25.7069,
+      "lng": 28.3765,
+      "hours": "06:00 - 20:00 every day",
+      "offersDelivery": false,
+      "acceptsOrders": true,
+      "verified": true,
+      "verificationStatus": "verified",
+      "verificationMethod": "course",
+      "verifiedAt": "2026-08-03T10:00:00Z",
+      "createdAt": "2026-08-01T08:00:00Z"
+    },
+    {
+      "id": "shop-sipho",
+      "ownerId": "owner-sipho",
+      "name": "Sipho's Corner Store",
+      "ownerName": "Sipho Dlamini",
+      "phone": "082 345 6789",
+      "category": "spaza",
+      "township": "Mamelodi",
+      "lat": -25.7132,
+      "lng": 28.3841,
+      "hours": "07:00 - 21:00 every day",
+      "offersDelivery": true,
+      "acceptsOrders": true,
+      "verified": true,
+      "verificationStatus": "verified",
+      "verificationMethod": "document",
+      "verifiedAt": "2026-08-04T09:00:00Z",
+      "createdAt": "2026-08-02T08:00:00Z"
+    },
+    {
+      "id": "shop-mama-joy",
+      "ownerId": "owner-joy",
+      "name": "Mama Joy's Kota Corner",
+      "ownerName": "Joyce Mahlangu",
+      "phone": "073 456 7890",
+      "category": "takeaway",
+      "township": "Mamelodi",
+      "lat": -25.701,
+      "lng": 28.3699,
+      "hours": "10:00 - 19:00 Mon - Sat",
+      "offersDelivery": false,
+      "acceptsOrders": true,
+      "verified": true,
+      "verificationStatus": "verified",
+      "verificationMethod": "course",
+      "verifiedAt": "2026-08-05T11:00:00Z",
+      "createdAt": "2026-08-03T08:00:00Z"
+    },
+    {
+      "id": "shop-fresh-veg",
+      "ownerId": "owner-lindiwe",
+      "name": "Lindiwe's Fresh Produce",
+      "ownerName": "Lindiwe Khumalo",
+      "phone": "079 567 8901",
+      "category": "greengrocer",
+      "township": "Mamelodi",
+      "lat": -25.7148,
+      "lng": 28.37,
+      "hours": "06:30 - 18:00 every day",
+      "offersDelivery": false,
+      "acceptsOrders": true,
+      "verified": false,
+      "verificationStatus": "pending",
+      "verificationMethod": "document",
+      "verifiedAt": null,
+      "createdAt": "2026-08-04T08:00:00Z"
+    },
+    {
+      "id": "shop-bongani",
+      "ownerId": "owner-bongani",
+      "name": "Bongani's Tuckshop",
+      "ownerName": "Bongani Zulu",
+      "phone": "084 678 9012",
+      "category": "tuckshop",
+      "township": "Soshanguve",
+      "lat": -25.5167,
+      "lng": 28.1167,
+      "hours": "07:00 - 20:00 every day",
+      "offersDelivery": false,
+      "acceptsOrders": true,
+      "verified": true,
+      "verificationStatus": "verified",
+      "verificationMethod": "document",
+      "verifiedAt": "2026-08-07T08:30:00Z",
+      "createdAt": "2026-08-05T08:00:00Z"
+    },
+    {
+      "id": "shop-butchery",
+      "ownerId": "owner-mandla",
+      "name": "Mandla's Butchery",
+      "ownerName": "Mandla Sithole",
+      "phone": "071 789 0123",
+      "category": "butchery",
+      "township": "Soshanguve",
+      "lat": -25.5203,
+      "lng": 28.1224,
+      "hours": "07:00 - 18:00 Mon - Sat",
+      "offersDelivery": true,
+      "acceptsOrders": true,
+      "verified": true,
+      "verificationStatus": "verified",
+      "verificationMethod": "course",
+      "verifiedAt": "2026-08-08T14:00:00Z",
+      "createdAt": "2026-08-06T08:00:00Z"
+    },
+    {
+      "id": "shop-le-3522",
+      "ownerId": "owner-1790006933522",
+      "name": "Le",
+      "ownerName": "Le",
+      "phone": "0711234567",
+      "category": "spaza",
+      "township": "Mamelodi",
+      "lat": -25.7069,
+      "lng": 28.3765,
+      "hours": "07:00 - 19:00 every day",
+      "offersDelivery": false,
+      "acceptsOrders": true,
+      "verified": false,
+      "verificationStatus": "draft",
+      "verificationMethod": null,
+      "verifiedAt": null,
+      "createdAt": "2026-09-21T16:08:53.522Z"
+    },
+    {
+      "id": "shop-kop-3975",
+      "ownerId": "owner-1790009563975",
+      "name": "Kop",
+      "ownerName": "Kopano",
+      "phone": "0774240150",
+      "category": "spaza",
+      "township": "Mamelodi",
+      "lat": -25.617870546949426,
+      "lng": 28.003253159113385,
+      "hours": "07:00 - 19:00 every day",
+      "offersDelivery": false,
+      "acceptsOrders": true,
+      "verified": true,
+      "verificationStatus": "verified",
+      "verificationMethod": "course",
+      "verifiedAt": "2026-09-21T16:54:01.850Z",
+      "createdAt": "2026-09-21T16:52:43.975Z"
+    }
+  ],
+  "goods": [
+    {
+      "id": "g1",
+      "shopId": "shop-thandi",
+      "name": "White bread (700g)",
+      "category": "bakery",
+      "unit": "loaf",
+      "price": 18.5,
+      "stockQty": 24,
+      "hidden": false
+    },
+    {
+      "id": "g2",
+      "shopId": "shop-thandi",
+      "name": "Maize meal (5kg)",
+      "category": "groceries",
+      "unit": "bag",
+      "price": 89,
+      "stockQty": 14,
+      "hidden": false
+    },
+    {
+      "id": "g3",
+      "shopId": "shop-thandi",
+      "name": "Airtime R10 (all networks)",
+      "category": "airtime",
+      "unit": "voucher",
+      "price": 10,
+      "stockQty": 200,
+      "hidden": false
+    },
+    {
+      "id": "g4",
+      "shopId": "shop-thandi",
+      "name": "Cooking oil (750ml)",
+      "category": "groceries",
+      "unit": "bottle",
+      "price": 34,
+      "stockQty": 0,
+      "hidden": false
+    },
+    {
+      "id": "g5",
+      "shopId": "shop-thandi",
+      "name": "Sugar (2kg)",
+      "category": "groceries",
+      "unit": "bag",
+      "price": 42,
+      "stockQty": 10,
+      "hidden": false
+    },
+    {
+      "id": "g6",
+      "shopId": "shop-sipho",
+      "name": "White bread (700g)",
+      "category": "bakery",
+      "unit": "loaf",
+      "price": 17.5,
+      "stockQty": 16,
+      "hidden": false
+    },
+    {
+      "id": "g7",
+      "shopId": "shop-sipho",
+      "name": "Cooking oil (750ml)",
+      "category": "groceries",
+      "unit": "bottle",
+      "price": 33,
+      "stockQty": 6,
+      "hidden": false
+    },
+    {
+      "id": "g8",
+      "shopId": "shop-sipho",
+      "name": "Airtime R20 (all networks)",
+      "category": "airtime",
+      "unit": "voucher",
+      "price": 20,
+      "stockQty": 150,
+      "hidden": false
+    },
+    {
+      "id": "g9",
+      "shopId": "shop-sipho",
+      "name": "Candles (pack of 6)",
+      "category": "household",
+      "unit": "pack",
+      "price": 22,
+      "stockQty": 30,
+      "hidden": false
+    },
+    {
+      "id": "g10",
+      "shopId": "shop-sipho",
+      "name": "Bar soap",
+      "category": "toiletries",
+      "unit": "bar",
+      "price": 9,
+      "stockQty": 40,
+      "hidden": false
+    },
+    {
+      "id": "g11",
+      "shopId": "shop-mama-joy",
+      "name": "Full house kota",
+      "category": "cooked food",
+      "unit": "each",
+      "price": 45,
+      "stockQty": 30,
+      "hidden": false
+    },
+    {
+      "id": "g12",
+      "shopId": "shop-mama-joy",
+      "name": "Chips & russian",
+      "category": "cooked food",
+      "unit": "each",
+      "price": 38,
+      "stockQty": 25,
+      "hidden": false
+    },
+    {
+      "id": "g13",
+      "shopId": "shop-mama-joy",
+      "name": "Bunny chow (small)",
+      "category": "cooked food",
+      "unit": "each",
+      "price": 35,
+      "stockQty": 12,
+      "hidden": false
+    },
+    {
+      "id": "g14",
+      "shopId": "shop-fresh-veg",
+      "name": "Tomatoes",
+      "category": "fresh produce",
+      "unit": "kg",
+      "price": 22,
+      "stockQty": 18,
+      "hidden": false
+    },
+    {
+      "id": "g15",
+      "shopId": "shop-fresh-veg",
+      "name": "Onions",
+      "category": "fresh produce",
+      "unit": "kg",
+      "price": 18,
+      "stockQty": 20,
+      "hidden": false
+    },
+    {
+      "id": "g16",
+      "shopId": "shop-fresh-veg",
+      "name": "Spinach bunch",
+      "category": "fresh produce",
+      "unit": "bunch",
+      "price": 12,
+      "stockQty": 15,
+      "hidden": false
+    },
+    {
+      "id": "g17",
+      "shopId": "shop-bongani",
+      "name": "White bread (700g)",
+      "category": "bakery",
+      "unit": "loaf",
+      "price": 18,
+      "stockQty": 10,
+      "hidden": false
+    },
+    {
+      "id": "g18",
+      "shopId": "shop-bongani",
+      "name": "Maize meal (5kg)",
+      "category": "groceries",
+      "unit": "bag",
+      "price": 91,
+      "stockQty": 5,
+      "hidden": false
+    },
+    {
+      "id": "g19",
+      "shopId": "shop-bongani",
+      "name": "Cooking oil (750ml)",
+      "category": "groceries",
+      "unit": "bottle",
+      "price": 35,
+      "stockQty": 0,
+      "hidden": false
+    },
+    {
+      "id": "g20",
+      "shopId": "shop-bongani",
+      "name": "Airtime R5 (all networks)",
+      "category": "airtime",
+      "unit": "voucher",
+      "price": 5,
+      "stockQty": 300,
+      "hidden": false
+    },
+    {
+      "id": "g21",
+      "shopId": "shop-butchery",
+      "name": "Boerewors",
+      "category": "meat",
+      "unit": "kg",
+      "price": 89,
+      "stockQty": 22,
+      "hidden": false
+    },
+    {
+      "id": "g22",
+      "shopId": "shop-butchery",
+      "name": "Chicken feet (bag)",
+      "category": "meat",
+      "unit": "bag",
+      "price": 30,
+      "stockQty": 14,
+      "hidden": false
+    },
+    {
+      "id": "g23",
+      "shopId": "shop-butchery",
+      "name": "Beef mince (500g)",
+      "category": "meat",
+      "unit": "pack",
+      "price": 55,
+      "stockQty": 9,
+      "hidden": false
+    },
+    {
+      "id": "shop-le-3522-g0",
+      "shopId": "shop-le-3522",
+      "name": "Bannas",
+      "category": "groceries",
+      "unit": "each",
+      "price": 8,
+      "stockQty": 1,
+      "hidden": false
+    },
+    {
+      "id": "shop-kop-3975-g0",
+      "shopId": "shop-kop-3975",
+      "name": "Apples",
+      "category": "groceries",
+      "unit": "each",
+      "price": 10,
+      "stockQty": 5,
+      "hidden": false
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-1",
+      "shopId": "shop-thandi",
+      "consumerName": "Palesa M.",
+      "consumerPhone": "060 111 2233",
+      "items": [
+        {
+          "goodId": "g1",
+          "name": "White bread (700g)",
+          "unit": "loaf",
+          "qty": 2,
+          "price": 18.5
+        },
+        {
+          "goodId": "g3",
+          "name": "Airtime R10 (all networks)",
+          "unit": "voucher",
+          "qty": 1,
+          "price": 10
+        }
+      ],
+      "fulfilment": "pickup",
+      "payment": "cash",
+      "note": "",
+      "status": "collected",
+      "total": 47,
+      "platformFee": 1.4,
+      "createdAt": "2026-09-19T10:00:00Z"
+    }
+  ],
+  "pools": [
+    {
+      "id": "pool-maize",
+      "productName": "Maize meal 5kg",
+      "unitLabel": "bag",
+      "supplierName": "Highveld Milling Co.",
+      "supplierVerified": true,
+      "minQty": 20,
+      "tiers": [
+        {
+          "minQty": 0,
+          "price": 95
+        },
+        {
+          "minQty": 15,
+          "price": 88
+        },
+        {
+          "minQty": 25,
+          "price": 82
+        },
+        {
+          "minQty": 40,
+          "price": 76
+        }
+      ],
+      "commitments": [
+        {
+          "shopId": "shop-thandi",
+          "shopName": "Thandi's Spaza",
+          "township": "Mamelodi",
+          "qty": 8,
+          "paid": true,
+          "joinedAt": "2026-09-10T09:00:00Z"
+        },
+        {
+          "shopId": "shop-sipho",
+          "shopName": "Sipho's Corner Store",
+          "township": "Mamelodi",
+          "qty": 6,
+          "paid": true,
+          "joinedAt": "2026-09-11T10:30:00Z"
+        }
+      ],
+      "closesAt": "2026-09-25T17:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "pool-oil",
+      "productName": "Cooking oil 750ml (case of 12)",
+      "unitLabel": "case",
+      "supplierName": "Kasi Wholesalers",
+      "supplierVerified": true,
+      "minQty": 10,
+      "tiers": [
+        {
+          "minQty": 0,
+          "price": 320
+        },
+        {
+          "minQty": 8,
+          "price": 295
+        },
+        {
+          "minQty": 15,
+          "price": 270
+        }
+      ],
+      "commitments": [
+        {
+          "shopId": "shop-bongani",
+          "shopName": "Bongani's Tuckshop",
+          "township": "Soshanguve",
+          "qty": 3,
+          "paid": true,
+          "joinedAt": "2026-09-12T08:15:00Z"
+        }
+      ],
+      "closesAt": "2026-09-27T17:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "pool-sugar",
+      "productName": "Sugar 2kg",
+      "unitLabel": "bag",
+      "supplierName": "Highveld Milling Co.",
+      "supplierVerified": true,
+      "minQty": 15,
+      "tiers": [
+        {
+          "minQty": 0,
+          "price": 45
+        },
+        {
+          "minQty": 12,
+          "price": 40
+        },
+        {
+          "minQty": 20,
+          "price": 36
+        }
+      ],
+      "commitments": [
+        {
+          "shopId": "shop-thandi",
+          "shopName": "Thandi's Spaza",
+          "township": "Mamelodi",
+          "qty": 5,
+          "paid": false,
+          "joinedAt": "2026-09-14T11:00:00Z"
+        },
+        {
+          "shopId": "shop-butchery",
+          "shopName": "Mandla's Butchery",
+          "township": "Soshanguve",
+          "qty": 4,
+          "paid": false,
+          "joinedAt": "2026-09-15T09:20:00Z"
+        },
+        {
+          "shopId": "shop-mama-joy",
+          "shopName": "Mama Joy's Kota Corner",
+          "township": "Mamelodi",
+          "qty": 6,
+          "paid": true,
+          "joinedAt": "2026-09-15T14:00:00Z"
+        }
+      ],
+      "closesAt": "2026-09-24T17:00:00Z",
+      "status": "delivered"
+    }
+  ],
+  "listings": [
+    {
+      "id": "listing-sipho-oil",
+      "shopId": "shop-sipho",
+      "shopName": "Sipho's Corner Store",
+      "township": "Mamelodi",
+      "lat": -25.7132,
+      "lng": 28.3841,
+      "type": "have",
+      "item": "Cooking oil (750ml)",
+      "qty": 6,
+      "unit": "bottle",
+      "wantInReturn": "Maize meal or cash",
+      "price": 33,
+      "createdAt": "2026-09-16T08:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "listing-thandi-need-oil",
+      "shopId": "shop-thandi",
+      "shopName": "Thandi's Spaza",
+      "township": "Mamelodi",
+      "lat": -25.7069,
+      "lng": 28.3765,
+      "type": "need",
+      "item": "Cooking oil (750ml)",
+      "qty": 4,
+      "unit": "bottle",
+      "wantInReturn": "Maize meal or cash",
+      "price": null,
+      "createdAt": "2026-09-16T09:10:00Z",
+      "status": "open"
+    },
+    {
+      "id": "listing-bongani-need-oil",
+      "shopId": "shop-bongani",
+      "shopName": "Bongani's Tuckshop",
+      "township": "Soshanguve",
+      "lat": -25.5167,
+      "lng": 28.1167,
+      "type": "need",
+      "item": "Cooking oil (750ml)",
+      "qty": 4,
+      "unit": "bottle",
+      "wantInReturn": "Maize meal or cash",
+      "price": null,
+      "createdAt": "2026-09-17T07:40:00Z",
+      "status": "open"
+    },
+    {
+      "id": "listing-butchery-have-mince",
+      "shopId": "shop-butchery",
+      "shopName": "Mandla's Butchery",
+      "township": "Soshanguve",
+      "lat": -25.5203,
+      "lng": 28.1224,
+      "type": "have",
+      "item": "Beef mince (500g)",
+      "qty": 9,
+      "unit": "pack",
+      "wantInReturn": "Cash only",
+      "price": 55,
+      "createdAt": "2026-09-17T12:00:00Z",
+      "status": "open"
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread-sipho-bongani",
+      "listingId": "listing-sipho-oil",
+      "shopAId": "shop-sipho",
+      "shopBId": "shop-bongani",
+      "messages": [
+        {
+          "id": "m1",
+          "fromShopId": "shop-bongani",
+          "text": "Sawubona Sipho, I saw you have cooking oil. I'm short 4 bottles today.",
+          "createdAt": "2026-09-17T08:00:00Z"
+        },
+        {
+          "id": "m2",
+          "fromShopId": "shop-sipho",
+          "text": "Yebo, I have 6 left. What can you swap?",
+          "createdAt": "2026-09-17T08:05:00Z"
+        }
+      ],
+      "offers": [],
+      "confirmedBy": [],
+      "status": "open",
+      "createdAt": "2026-09-17T08:00:00Z"
+    }
+  ],
+  "trainingSessions": [
+    {
+      "id": "train-1",
+      "title": "Getting registered: CIPC, SARS & UIF for spaza owners",
+      "provider": "Wholesale & Retail SETA (with Sefa)",
+      "topic": "business-registration",
+      "township": "Mamelodi",
+      "venue": "Mamelodi Community Hall",
+      "lat": -25.7058,
+      "lng": 28.3781,
+      "date": "2026-10-02T09:00:00Z",
+      "capacity": 40,
+      "attendees": [
+        {
+          "shopId": "shop-sipho",
+          "shopName": "Sipho's Corner Store",
+          "registeredAt": "2026-09-16T08:30:00Z",
+          "attended": false
+        },
+        {
+          "shopId": "shop-mama-joy",
+          "shopName": "Mama Joy's Kota Corner",
+          "registeredAt": "2026-09-21T15:28:01.979Z",
+          "attended": false
+        }
+      ],
+      "notes": "Bring your ID and proof of address. SEDFA officials will assist with on-the-spot registration."
+    },
+    {
+      "id": "train-2",
+      "title": "Health & food safety: what inspectors check",
+      "provider": "Wholesale & Retail SETA (with Sefa)",
+      "topic": "food-safety",
+      "township": "Mamelodi",
+      "venue": "Mamelodi Environmental Health Office",
+      "lat": -25.7101,
+      "lng": 28.3722,
+      "date": "2026-10-09T09:00:00Z",
+      "capacity": 30,
+      "attendees": [
+        {
+          "shopId": "shop-mama-joy",
+          "shopName": "Mama Joy's Kota Corner",
+          "registeredAt": "2026-09-17T11:00:00Z",
+          "attended": false
+        }
+      ],
+      "notes": "Covers Certificate of Acceptability requirements under Regulation R638."
+    },
+    {
+      "id": "train-3",
+      "title": "Inventory management & point-of-sale basics",
+      "provider": "Wholesale & Retail SETA (with Sefa)",
+      "topic": "inventory-management",
+      "township": "Soshanguve",
+      "venue": "Soshanguve Multipurpose Centre",
+      "lat": -25.5183,
+      "lng": 28.1145,
+      "date": "2026-10-16T09:00:00Z",
+      "capacity": 35,
+      "attendees": [
+        {
+          "shopId": "shop-bongani",
+          "shopName": "Bongani's Tuckshop",
+          "registeredAt": "2026-09-18T09:15:00Z",
+          "attended": false
+        },
+        {
+          "shopId": "shop-mama-joy",
+          "shopName": "Mama Joy's Kota Corner",
+          "registeredAt": "2026-09-21T15:28:09.181Z",
+          "attended": false
+        }
+      ],
+      "notes": "Owners who complete this session qualify for free starter stock support."
+    },
+    {
+      "id": "train-4",
+      "title": "Basic bookkeeping for township shops",
+      "provider": "Wholesale & Retail SETA (with Sefa)",
+      "topic": "financial-management",
+      "township": "Soshanguve",
+      "venue": "Soshanguve Multipurpose Centre",
+      "lat": -25.5183,
+      "lng": 28.1145,
+      "date": "2026-09-11T09:00:00Z",
+      "capacity": 35,
+      "attendees": [
+        {
+          "shopId": "shop-butchery",
+          "shopName": "Mandla's Butchery",
+          "registeredAt": "2026-08-28T09:00:00Z",
+          "attended": true
+        },
+        {
+          "shopId": "shop-bongani",
+          "shopName": "Bongani's Tuckshop",
+          "registeredAt": "2026-08-29T13:00:00Z",
+          "attended": true
+        }
+      ],
+      "notes": "Completed session — attendance has been captured."
+    }
+  ],
+  "verificationRequests": [
+    {
+      "id": "vr-fresh-veg",
+      "shopId": "shop-fresh-veg",
+      "shopName": "Lindiwe's Fresh Produce",
+      "method": "document",
+      "documents": [
+        {
+          "id": "doc-1",
+          "docType": "municipal-trading-licence",
+          "fileName": "trading-permit.pdf",
+          "dataUrl": "",
+          "referenceNumber": "COT-2026-88213"
+        },
+        {
+          "id": "doc-2",
+          "docType": "certificate-of-acceptability",
+          "fileName": "coa-lindiwe.pdf",
+          "dataUrl": "",
+          "referenceNumber": ""
+        }
+      ],
+      "status": "pending",
+      "submittedAt": "2026-09-18T09:00:00Z"
+    }
+  ],
+  "certificates": [
+    {
+      "id": "cert-1790009641850-8434",
+      "shopId": "shop-kop-3975",
+      "shopName": "Kop",
+      "courseId": "course-compliance-essentials",
+      "courseTitle": "Kasi Shop Compliance Essentials",
+      "score": 0.8,
+      "certificateNumber": "MZB-CC-703496",
+      "issuedAt": "2026-09-21T16:54:01.850Z",
+      "issuedWith": "Dept. of Small Business Development pilot programme"
+    },
+    {
+      "id": "cert-thandi",
+      "shopId": "shop-thandi",
+      "shopName": "Thandi's Spaza",
+      "courseId": "course-compliance-essentials",
+      "courseTitle": "Kasi Shop Compliance Essentials",
+      "score": 0.9,
+      "certificateNumber": "MZB-CC-100231",
+      "issuedAt": "2026-08-03T10:00:00Z",
+      "issuedWith": "Dept. of Small Business Development pilot programme"
+    },
+    {
+      "id": "cert-mama-joy",
+      "shopId": "shop-mama-joy",
+      "shopName": "Mama Joy's Kota Corner",
+      "courseId": "course-compliance-essentials",
+      "courseTitle": "Kasi Shop Compliance Essentials",
+      "score": 0.8,
+      "certificateNumber": "MZB-CC-100244",
+      "issuedAt": "2026-08-05T11:00:00Z",
+      "issuedWith": "Dept. of Small Business Development pilot programme"
+    },
+    {
+      "id": "cert-butchery",
+      "shopId": "shop-butchery",
+      "shopName": "Mandla's Butchery",
+      "courseId": "course-compliance-essentials",
+      "courseTitle": "Kasi Shop Compliance Essentials",
+      "score": 1,
+      "certificateNumber": "MZB-CC-100259",
+      "issuedAt": "2026-08-08T14:00:00Z",
+      "issuedWith": "Dept. of Small Business Development pilot programme"
+    }
+  ],
+  "courses": [
+    {
+      "id": "course-compliance-essentials",
+      "title": "Kasi Shop Compliance Essentials",
+      "summary": "A short, plain-language course covering what every township shop owner needs to trade legally — registration, food safety, and by-laws.",
+      "issuedWith": "Dept. of Small Business Development pilot programme",
+      "passMark": 0.7,
+      "lessons": [
+        {
+          "id": "l1",
+          "title": "Getting registered",
+          "minutes": 4,
+          "body": [
+            "Every trading business needs to be registered with the Companies and Intellectual Property Commission (CIPC), and with SARS for tax purposes. If you employ anyone, you also need to register for UIF.",
+            "Registration is what makes a pool, an exchange trade, or a customer order enforceable — it's what turns a stall into a business the law (and this platform) recognises.",
+            "Municipalities also require spaza shops and food handling outlets to register locally, following the national registration drive that began in late 2024."
+          ]
+        },
+        {
+          "id": "l2",
+          "title": "Food safety and the Certificate of Acceptability",
+          "minutes": 5,
+          "body": [
+            "If you sell any food — packaged or prepared — your premises need a Certificate of Acceptability (CoA) from your municipality's Environmental Health Department, under Regulation R638.",
+            "This covers safe storage temperatures, pest control, clean surfaces, and separating raw and cooked food.",
+            "Operating without a CoA is a criminal offence, and non-compliant premises can be closed immediately by inspectors — this isn't optional paperwork."
+          ]
+        },
+        {
+          "id": "l3",
+          "title": "Municipal by-laws and trading permits",
+          "minutes": 3,
+          "body": [
+            "Beyond national registration, your local municipality may require a trading licence or permit for the specific location you trade from.",
+            "Keep proof of address and, where relevant, your landlord or property owner's consent — inspectors and verifiers will ask for these alongside your CIPC and CoA documents."
+          ]
+        },
+        {
+          "id": "l4",
+          "title": "Why this matters for you on Mzansi Business",
+          "minutes": 2,
+          "body": [
+            "Only verified shops appear on the customer map, can post or respond to exchange listings, and can join bulk-buying pools.",
+            "This protects customers, and it protects you — a verified badge is what lets other shop owners trust you enough to trade stock with you.",
+            "Passing this course issues you a certificate and moves your shop straight to Verified. You can also upload your own documents instead, which a human verifier will check."
+          ]
+        }
+      ],
+      "quiz": [
+        {
+          "id": "q1",
+          "question": "Which three bodies must most trading businesses register with?",
+          "options": [
+            "CIPC, SARS, and UIF (if you employ staff)",
+            "Only your local municipality",
+            "Only the bank you use",
+            "Facebook Business and Google Maps"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "id": "q2",
+          "question": "What does a Certificate of Acceptability cover?",
+          "options": [
+            "Your business's tax rate",
+            "Food safety and hygiene at your premises, under Regulation R638",
+            "Your eligibility for a bank loan",
+            "Your shop's insurance policy"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "id": "q3",
+          "question": "What can happen if your premises don't meet food safety regulations?",
+          "options": [
+            "Nothing, as long as you're registered with CIPC",
+            "You get a warning letter after a year",
+            "Inspectors can close the premises immediately",
+            "You lose your CIPC registration only"
+          ],
+          "correctIndex": 2
+        },
+        {
+          "id": "q4",
+          "question": "Why does Mzansi Business require shops to be verified?",
+          "options": [
+            "To charge higher fees to verified shops",
+            "So only compliant shops appear to customers and can trade with other shops",
+            "Verification is just cosmetic and has no effect on features",
+            "To limit the number of shops on the platform"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "id": "q5",
+          "question": "If you don't have your documents ready yet, what can you do on this platform?",
+          "options": [
+            "Nothing — you cannot register a shop at all",
+            "Trade immediately while you wait",
+            "Complete this compliance course to become verified instead",
+            "Ask a customer to vouch for you"
+          ],
+          "correctIndex": 2
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "id": "acc-shop-thandi",
+      "role": "owner",
+      "name": "Thandi Nkosi",
+      "phone": "071 234 5678",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-thandi",
+      "demo": true,
+      "createdAt": "2026-08-01T08:00:00Z"
+    },
+    {
+      "id": "acc-shop-sipho",
+      "role": "owner",
+      "name": "Sipho Dlamini",
+      "phone": "082 345 6789",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-sipho",
+      "demo": true,
+      "createdAt": "2026-08-02T08:00:00Z"
+    },
+    {
+      "id": "acc-shop-mama-joy",
+      "role": "owner",
+      "name": "Joyce Mahlangu",
+      "phone": "073 456 7890",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-mama-joy",
+      "demo": true,
+      "createdAt": "2026-08-03T08:00:00Z"
+    },
+    {
+      "id": "acc-shop-fresh-veg",
+      "role": "owner",
+      "name": "Lindiwe Khumalo",
+      "phone": "079 567 8901",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-fresh-veg",
+      "demo": true,
+      "createdAt": "2026-08-04T08:00:00Z"
+    },
+    {
+      "id": "acc-shop-bongani",
+      "role": "owner",
+      "name": "Bongani Zulu",
+      "phone": "084 678 9012",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-bongani",
+      "demo": true,
+      "createdAt": "2026-08-05T08:00:00Z"
+    },
+    {
+      "id": "acc-shop-butchery",
+      "role": "owner",
+      "name": "Mandla Sithole",
+      "phone": "071 789 0123",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-butchery",
+      "demo": true,
+      "createdAt": "2026-08-06T08:00:00Z"
+    },
+    {
+      "id": "acc-shop-le-3522",
+      "role": "owner",
+      "name": "Le",
+      "phone": "0711234567",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-le-3522",
+      "demo": true,
+      "createdAt": "2026-09-21T16:08:53.522Z"
+    },
+    {
+      "id": "acc-shop-kop-3975",
+      "role": "owner",
+      "name": "Kopano",
+      "phone": "0774240150",
+      "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "shopId": "shop-kop-3975",
+      "demo": true,
+      "createdAt": "2026-09-21T16:52:43.975Z"
+    }
+  ]
+}

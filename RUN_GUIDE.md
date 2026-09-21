@@ -156,20 +156,35 @@ your own laptop during judging.** Zero deploy risk, and the file-based database
 persists for the whole session.
 
 **If you want a real public link:**
-- **Render.com (recommended)** — a free Web Service on Render runs `next
-  start` as a long-lived process, so `data/db.json` persists on its disk
-  between requests exactly like it does locally. Push this project to a GitHub
-  repo, create a new Web Service on Render pointing at it, set the build
-  command to `npm install && npm run build` and the start command to `npm run
-  start`, and optionally add `ANTHROPIC_API_KEY` as an environment variable.
+- **Render.com (recommended for persistent data)** — a free Web Service on
+  Render runs `next start` as a long-lived process, so `data/db.json` persists
+  on its disk between requests exactly like it does locally. Push this project
+  to a GitHub repo, create a new Web Service on Render pointing at it, set the
+  build command to `npm install && npm run build` and the start command to
+  `npm run start`, and optionally add `ANTHROPIC_API_KEY` as an environment
+  variable.
+- **Netlify (easiest link to share)** — the repo ships a `netlify.toml` plus
+  `outputFileTracingIncludes` in `next.config.js`, so Netlify's Next.js runtime
+  needs zero config: push to GitHub, then in Netlify choose "Add new site →
+  Import an existing project", pick the repo, and accept the detected settings
+  (`npm run build`, publish `.next`, `@netlify/plugin-nextjs`). Optionally add
+  `ANTHROPIC_API_KEY` under Site settings → Environment variables. Everything
+  works out of the box — sign-in (PIN `1234` for the demo shops), shop
+  registration, the owner dashboard and the map all run on Netlify Functions,
+  and the seeded `data/db.json` is bundled so the real shop list appears. The
+  one caveat: serverless functions have an ephemeral filesystem, so *changes*
+  made on the deployed site (new shops, PINs, stock updates) live only in the
+  running function instance and reset when Netlify recycles it. Perfect for
+  demos and reviewing the UI; use Render (or a real database) when you need
+  deployed changes to survive.
 - **Vercel** is the more familiar option for Next.js, but its serverless
   functions don't keep a writable, persistent filesystem between requests —
   `data/db.json` would reset unpredictably between cold starts. It'll run, but
   data won't reliably persist across users/tabs. Fine for showing the UI, not
   for a real multi-tab demo of the backend.
 
-I can't create either of these deployments on your behalf — I don't have an
-account to deploy to — but both take under five minutes by hand from a pushed
+I can't create any of these deployments on your behalf — I don't have an
+account to deploy to — but each takes under five minutes by hand from a pushed
 GitHub repo.
 
 ## Stack
