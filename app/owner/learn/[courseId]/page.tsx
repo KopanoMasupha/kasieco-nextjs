@@ -5,6 +5,8 @@ import { notFound, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import Certificate from "@/components/Certificate";
+import VerificationProgressBar from "@/components/VerificationProgressBar";
+import { startVerificationProcess } from "@/lib/verificationProcess";
 import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, Loader2, Store } from "lucide-react";
 import clsx from "clsx";
 
@@ -55,6 +57,8 @@ export default function CoursePage({ params }: { params: { courseId: string } })
     setStage("result");
 
     if (meta.passed) {
+      // certificate issued — the CIPC / B-BBEE / Tshwane checks still need to run
+      startVerificationProcess(shop!.id, "course");
       import("canvas-confetti").then(({ default: confetti }) => {
         confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 }, colors: ["#E85D2B", "#2F6D4F", "#171310"] });
       });
@@ -156,11 +160,18 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                   issuedWith={certificate.issuedWith}
                   score={certificate.score}
                 />
-                <div className="card flex items-center gap-2 p-4 text-sm font-medium text-leaf">
-                  <CheckCircle2 size={16} /> {shop.name} is now verified — customers can find you and you can trade with other shops.
+                <div className="card space-y-2 p-4 text-sm">
+                  <p className="flex items-center gap-2 font-medium text-leaf">
+                    <CheckCircle2 size={16} /> Certificate issued — well done!
+                  </p>
+                  <p className="text-ink/55">
+                    Your details are now being checked with CIPC, the B-BBEE commission and
+                    the City of Tshwane. Verification completes in about 30 minutes.
+                  </p>
                 </div>
-                <button onClick={() => router.push("/owner")} className="btn-dark w-full py-3 text-sm">
-                  Go to my dashboard
+                <VerificationProgressBar shopId={shop.id} />
+                <button onClick={() => router.push("/owner/verify-status")} className="btn-dark w-full py-3 text-sm">
+                  Watch the verification progress
                 </button>
               </>
             ) : (

@@ -253,19 +253,15 @@ export interface TrainingSession {
 
 export type ComplianceDocType =
   | "cipc-registration"
-  | "tax-clearance"
   | "certificate-of-acceptability"
   | "municipal-trading-licence"
-  | "id-document"
-  | "other";
+  | "id-document";
 
 export const COMPLIANCE_DOC_LABEL: Record<ComplianceDocType, string> = {
   "cipc-registration": "CIPC business registration",
-  "tax-clearance": "SARS tax clearance",
   "certificate-of-acceptability": "Certificate of Acceptability (food safety)",
   "municipal-trading-licence": "Municipal trading licence / permit",
   "id-document": "Owner ID document",
-  other: "Other supporting document",
 };
 
 export interface ComplianceDocument {

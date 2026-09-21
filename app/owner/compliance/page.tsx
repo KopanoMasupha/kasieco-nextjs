@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { statusLabel, STATUS_STYLE } from "@/lib/compliance";
+import { startVerificationProcess } from "@/lib/verificationProcess";
 import { ComplianceDocType, COMPLIANCE_DOC_LABEL } from "@/lib/types";
 import Certificate from "@/components/Certificate";
 import {
@@ -24,9 +26,7 @@ const DOC_TYPES: ComplianceDocType[] = [
   "cipc-registration",
   "certificate-of-acceptability",
   "municipal-trading-licence",
-  "tax-clearance",
   "id-document",
-  "other",
 ];
 
 interface DraftDoc {
@@ -37,6 +37,7 @@ interface DraftDoc {
 
 export default function CompliancePage() {
   const { state, dispatch } = useStore();
+  const router = useRouter();
   const shop = state.shops.find((s) => s.id === state.myShopId);
   const [showUpload, setShowUpload] = useState(false);
   const [docs, setDocs] = useState<DraftDoc[]>([
@@ -80,6 +81,9 @@ export default function CompliancePage() {
     });
     setSubmitting(false);
     setShowUpload(false);
+    // start the simulated CIPC / B-BBEE / Tshwane verification window
+    startVerificationProcess(shop!.id, "documents");
+    router.push("/owner/verify-status");
   }
 
   return (
@@ -181,7 +185,9 @@ export default function CompliancePage() {
           <div className="flex items-center justify-between">
             <p className="font-semibold text-ink">Your documents</p>
             <button
-              onClick={() => setDocs((d) => [...d, { docType: "other", fileName: "", referenceNumber: "" }])}
+              onClick={() =>
+                setDocs((d) => [...d, { docType: "cipc-registration", fileName: "", referenceNumber: "" }])
+              }
               className="flex items-center gap-1 text-xs font-semibold text-ember-dark"
             >
               <Plus size={13} /> Add another

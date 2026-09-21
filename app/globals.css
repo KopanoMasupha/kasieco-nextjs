@@ -11,6 +11,33 @@ html,
 body {
   background-color: #f4ebdd;
   color: #171310;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Safety net: never let a stray wide element create a horizontal scrollbar.
+   `clip` (unlike `hidden`) doesn't create a scroll container, so the sticky
+   navbar keeps working. */
+body {
+  overflow-x: clip;
+}
+
+/*
+ * The app-wide horizontal gutter — the single source of truth for the space
+ * between the screen edge and the content container. Used identically by the
+ * sticky navbar, the main content area and the landing sections so their left
+ * and right edges always line up. On notched phones running the PWA standalone,
+ * the safe-area inset wins when it is larger than the base gutter.
+ */
+.app-gutter {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .app-gutter {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
 }
 
 * {
@@ -53,7 +80,7 @@ body {
 }
 
 .input {
-  @apply w-full rounded-xl2 border border-ink/15 bg-white px-4 py-2.5 text-[15px] placeholder:text-ink/35 focus:outline-none focus:ring-2 focus:ring-ember/40 focus:border-ember/50;
+  @apply w-full min-w-0 rounded-xl2 border border-ink/15 bg-white px-4 py-2.5 text-[15px] placeholder:text-ink/35 focus:outline-none focus:ring-2 focus:ring-ember/40 focus:border-ember/50;
 }
 
 .label {

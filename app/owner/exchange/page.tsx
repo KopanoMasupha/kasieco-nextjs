@@ -36,7 +36,7 @@ function ExchangeContent() {
   const [type, setType] = useState<ListingType>("have");
   const [item, setItem] = useState("");
   const [qty, setQty] = useState("");
-  const [unit, setUnit] = useState("bottle");
+  const [unit, setUnit] = useState("");
   const [wantInReturn, setWantInReturn] = useState("");
   const [price, setPrice] = useState("");
 

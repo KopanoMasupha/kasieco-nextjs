@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { isVerified } from "@/lib/compliance";
 import TuckShopIllustration from "@/components/TuckShopIllustration";
+import Container from "@/components/Container";
 import {
   ArrowRight,
   MapPin,
@@ -30,8 +31,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-sand-50">
-      {/* top bar */}
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8">
+      {/* top bar — same container pattern as the app navbar */}
+      <header className="app-gutter py-6">
+        <Container className="flex items-center justify-between">
         <span className="text-xl font-extrabold tracking-tight text-ink">
           Kasi-Connect<span className="text-ember">.</span>
         </span>
@@ -66,10 +68,12 @@ export default function LandingPage() {
             </>
           )}
         </div>
+        </Container>
       </header>
 
       {/* hero */}
-      <section className="mx-auto grid max-w-7xl gap-8 px-5 pb-16 pt-4 sm:px-8 lg:grid-cols-2 lg:items-center">
+      <section className="app-gutter pb-16 pt-4">
+        <Container className="grid gap-8 lg:grid-cols-2 lg:items-center">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <span className="chip border-none bg-ember/10 text-ember-dark">
             <Users2 size={14} /> {verifiedShops.length} verified kasi shops already trading
@@ -103,10 +107,12 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.5 }}>
           <TuckShopIllustration className="w-full" />
         </motion.div>
+        </Container>
       </section>
 
       {/* the map + shop finder live on their own page for shoppers */}
-      <section className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
+      <section className="app-gutter pb-16">
+        <Container>
         <div className="card flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
           <div className="flex items-start gap-3.5">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember/10 text-ember-dark">
@@ -124,10 +130,12 @@ export default function LandingPage() {
             Find shops on the map <ArrowRight size={16} />
           </Link>
         </div>
+        </Container>
       </section>
 
       {/* what Kasi-Connect does */}
-      <section className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
+      <section className="app-gutter pb-16">
+        <Container>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
             { title: "Buy", color: "text-ember-dark", body: "Join a pool and watch the price fall as more shops join." },
@@ -147,10 +155,12 @@ export default function LandingPage() {
             </motion.div>
           ))}
         </div>
+        </Container>
       </section>
 
       {/* compliance trust section */}
-      <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8">
+      <section className="app-gutter pb-20">
+        <Container>
         <div className="card grid gap-6 p-7 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <span className="chip border-none bg-leaf/10 text-leaf">
@@ -183,9 +193,10 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </Container>
       </section>
 
-      <footer className="border-t border-ink/5 px-5 py-8 text-center text-xs text-ink/35 sm:px-8">
+      <footer className="app-gutter border-t border-ink/5 py-8 text-center text-xs text-ink/35">
         Kasi-Connect — a Mzansi Business Digital Platform prototype ·{" "}
         <Link href="/verify" className="underline hover:text-ink/55">
           Government verifier portal

@@ -1,0 +1,57 @@
+
+> kasi-connect@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/21) ...
+   Generating static pages (5/21) 
+   Generating static pages (10/21) 
+   Generating static pages (15/21) 
+ ✓ Generating static pages (21/21)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    4.57 kB         145 kB
+├ ○ /_not-found                          873 B          88.7 kB
+├ ƒ /api/action                          0 B                0 B
+├ ƒ /api/ai/report                       0 B                0 B
+├ ƒ /api/auth/demo                       0 B                0 B
+├ ƒ /api/auth/signin                     0 B                0 B
+├ ƒ /api/state                           0 B                0 B
+├ ○ /consumer                            3.64 kB         109 kB
+├ ƒ /consumer/shop/[id]                  5.67 kB        99.2 kB
+├ ○ /icon.png                            0 B                0 B
+├ ○ /manifest.webmanifest                0 B                0 B
+├ ○ /offline                             175 B          96.7 kB
+├ ○ /owner                               4.94 kB         145 kB
+├ ○ /owner/compliance                    5.88 kB         146 kB
+├ ○ /owner/exchange                      6.12 kB         108 kB
+├ ƒ /owner/exchange/[threadId]           4.38 kB          98 kB
+├ ○ /owner/goods                         3.92 kB         106 kB
+├ ○ /owner/learn                         2.97 kB         105 kB
+├ ƒ /owner/learn/[courseId]              6.89 kB         138 kB
+├ ○ /owner/orders                        3.45 kB         106 kB
+├ ○ /owner/pools                         2.62 kB         108 kB
+├ ƒ /owner/pools/[id]                    2.11 kB        98.6 kB
+├ ○ /owner/register                      4.13 kB         100 kB
+├ ○ /owner/training                      4.34 kB         107 kB
+├ ○ /owner/verify-status                 7.11 kB         147 kB
+├ ƒ /signin                              5.21 kB         107 kB
+├ ○ /signout                             3.31 kB         106 kB
+└ ○ /verify                              4.4 kB           98 kB
++ First Load JS shared by all            87.8 kB
+  ├ chunks/117-1676216b8cb73a40.js       31.7 kB
+  ├ chunks/fd9d1056-39be68405fea66af.js  53.6 kB
+  └ other shared chunks (total)          2.46 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

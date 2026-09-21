@@ -26,6 +26,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#E85D2B",
+  width: "device-width",
+  initialScale: 1,
+  // let the page respect notch/safe-area insets when running as an installed PWA
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

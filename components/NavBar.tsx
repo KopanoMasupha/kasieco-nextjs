@@ -4,13 +4,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
+import { isVerificationOnHold } from "@/lib/verificationProcess";
+import Container from "./Container";
 import {
   Boxes,
   ChevronDown,
   ClipboardList,
+  FileCheck,
+  GraduationCap,
   LogOut,
   MapPin,
   Repeat,
+  ShieldCheck,
   Store,
   Users,
 } from "lucide-react";
@@ -48,11 +53,25 @@ export default function NavBar() {
     { href: "/owner/exchange", label: "Exchange", icon: Repeat },
   ];
 
-  const links = signedIn ? ownerLinks : consumerLinks;
+  // Unverified owners get a verification-focused nav until they're compliant.
+  const unverifiedOwnerLinks = [
+    { href: "/owner/verify-status", label: "Verification", icon: ShieldCheck },
+    { href: "/owner/compliance", label: "Compliance", icon: FileCheck },
+    { href: "/owner/learn", label: "Free course", icon: GraduationCap },
+  ];
+
+  const shopNeedsVerification =
+    !!myShop &&
+    (myShop.verificationStatus !== "verified" || isVerificationOnHold(myShop.id, myShop));
+  const links = signedIn
+    ? shopNeedsVerification
+      ? unverifiedOwnerLinks
+      : ownerLinks
+    : consumerLinks;
 
   return (
-    <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
-      <div className="mx-auto max-w-7xl">
+    <header className="sticky top-0 z-40 app-gutter pt-4">
+      <Container>
         <div className="card flex items-center gap-3 px-4 py-3 shadow-sm">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <span className="text-xl font-extrabold tracking-tight text-ink">
@@ -138,11 +157,12 @@ export default function NavBar() {
                   </div>
                   <div className="border-t border-ink/5 pt-1">
                     <Link
-                      href="/owner"
+                      href={shopNeedsVerification ? "/owner/verify-status" : "/owner"}
                       onClick={() => setAccountMenuOpen(false)}
                       className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm hover:bg-sand-50"
                     >
-                      <Store size={15} /> My dashboard
+                      <Store size={15} />{" "}
+                      {shopNeedsVerification ? "Verification status" : "My dashboard"}
                     </Link>
                     <Link
                       href="/consumer"
@@ -228,7 +248,7 @@ export default function NavBar() {
             </Link>
           )}
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

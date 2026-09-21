@@ -4,8 +4,9 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { ShopCategory, SHOP_CATEGORY_LABEL, GoodsCategory } from "@/lib/types";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { ShopCategory, SHOP_CATEGORY_LABEL, GoodsCategory, COMPLIANCE_DOC_LABEL } from "@/lib/types";
+import { requiredDocsForCategory } from "@/lib/compliance";
+import { Plus, Trash2, Loader2, ShieldCheck } from "lucide-react";
 import clsx from "clsx";
 
 const LocationPicker = dynamic(() => import("@/components/maps/LocationPicker"), {
@@ -65,8 +66,18 @@ export default function RegisterShopPage() {
   }
 
   // the phone number + PIN below become this owner's sign-in details
-  const pinValid = pin.trim().length >= 4 && pin.trim() === pinConfirm.trim();
-  const canContinueStep1 = !!(name.trim() && ownerName.trim() && phone.trim() && pinValid);
+  const digitsOnly = phone.replace(/[\s-]/g, "");
+  // South African numbers: 0XXXXXXXXX or +27XXXXXXXXX
+  const phoneValid = /^(?:\+27|0)\d{9}$/.test(digitsOnly);
+  const pinNumeric = /^\d{4,}$/.test(pin.trim());
+  const pinValid = pinNumeric && pin.trim() === pinConfirm.trim();
+  const canContinueStep1 = !!(
+    name.trim() &&
+    ownerName.trim() &&
+    phoneValid &&
+    pinValid
+  );
+  const requiredDocs = requiredDocsForCategory(category);
 
   async function submit() {
     setSubmitting(true);
@@ -113,7 +124,9 @@ export default function RegisterShopPage() {
       });
     }
     await dispatch({ type: "SET_ROLE", role: "owner" });
-    router.push("/owner/compliance?new=1");
+    // New owners land on the verification gate — trading stays locked until
+    // their shop's status is verified.
+    router.push("/owner/verify-status");
   }
 
   return (
@@ -148,7 +161,18 @@ export default function RegisterShopPage() {
             </div>
             <div>
               <p className="label">Phone number</p>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className="input" placeholder="071 234 5678" />
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="input"
+                placeholder="071 234 5678"
+                inputMode="tel"
+              />
+              {phone.trim().length > 0 && !phoneValid && (
+                <p className="mt-1 text-xs font-medium text-red-500">
+                  Enter a valid South African number (e.g. 071 234 5678 or +27 71 234 5678).
+                </p>
+              )}
             </div>
           </div>
 
@@ -182,7 +206,7 @@ export default function RegisterShopPage() {
             Your phone number and PIN are how you sign back in later — keep them safe.
             {pin.length > 0 && pinConfirm.length > 0 && !pinValid && (
               <span className="ml-1 font-medium text-red-500">
-                PINs don't match (use 4+ digits).
+                {pinNumeric ? "PINs don't match." : "Use 4 or more digits (numbers only)."}
               </span>
             )}
           </p>
@@ -200,6 +224,26 @@ export default function RegisterShopPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* adaptive prompt: the docs the system will require for this shop type */}
+          <div className="rounded-xl2 border border-ink/10 bg-sand-50 p-4">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-ink/70">
+              <ShieldCheck size={14} className="text-leaf" />
+              To get verified, a {SHOP_CATEGORY_LABEL[category].toLowerCase()} will need:
+            </p>
+            <ul className="mt-2 space-y-1">
+              {requiredDocs.map((doc) => (
+                <li key={doc} className="flex items-center gap-2 text-xs text-ink/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-ember" />
+                  {COMPLIANCE_DOC_LABEL[doc]}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-ink/40">
+              You&apos;ll upload these (or pass the free compliance course) after registering —
+              your shop stays hidden from customers until then.
+            </p>
           </div>
 
           <div>
@@ -327,7 +371,7 @@ export default function RegisterShopPage() {
             </div>
           ))}
           <p className="text-xs text-ink/40">
-            You can add or edit goods any time from "My goods" after you register.
+            You can add or edit goods any time from "My goods" after your shop is verified.
           </p>
 
           <div className="flex gap-3">
@@ -335,7 +379,7 @@ export default function RegisterShopPage() {
               Back
             </button>
             <button disabled={submitting} onClick={submit} className="btn-ember flex-1 py-3 text-sm">
-              {submitting ? <Loader2 size={15} className="animate-spin" /> : "Register my shop"}
+              {submitting ? <Loader2 size={15} className="animate-spin" /> : "Register & go to verification"}
             </button>
           </div>
         </div>
