@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+html,
+body {
+  background-color: #f4ebdd;
+  color: #171310;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 1.25rem;
+  z-index: 0;
+}
+
+.card {
+  @apply bg-white rounded-xl2 border border-sand-200/70;
+}
+
+.btn-pill {
+  @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors;
+}
+
+.btn-dark {
+  @apply btn-pill bg-ink text-white hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.btn-ember {
+  @apply btn-pill bg-ember text-white hover:bg-ember-dark disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.btn-outline {
+  @apply btn-pill border border-ink/15 text-ink bg-white hover:bg-sand-50;
+}
+
+.chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-4 py-2 text-sm font-medium text-ink/80 transition-colors hover:border-ink/30 whitespace-nowrap;
+}
+
+.chip-active {
+  @apply bg-ink text-white border-ink;
+}
+
+.input {
+  @apply w-full rounded-xl2 border border-ink/15 bg-white px-4 py-2.5 text-[15px] placeholder:text-ink/35 focus:outline-none focus:ring-2 focus:ring-ember/40 focus:border-ember/50;
+}
+
+.label {
+  @apply block text-sm font-medium text-ink/70 mb-1.5;
+}
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(23, 19, 16, 0.15);
+  border-radius: 999px;
+}
