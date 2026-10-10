@@ -7,6 +7,8 @@ import NavBar from "./NavBar";
 import Container from "./Container";
 import { useStore } from "@/lib/store";
 import { isVerificationOnHold } from "@/lib/verificationProcess";
+import HelpBot from "./HelpBot";
+import Skeleton from "./Skeleton";
 
 /** /owner pages that stay open to signed-out visitors (the sign-up flow). */
 const PUBLIC_OWNER_PATHS = ["/owner/register"];
@@ -23,11 +25,12 @@ const UNVERIFIED_ALLOWED_PATHS = [
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { state } = useStore();
+  const { state, loading } = useStore();
 
   const isLanding = pathname === "/";
   const isOwnerArea =
     pathname.startsWith("/owner") && !PUBLIC_OWNER_PATHS.includes(pathname);
+  const removedOrderArea = pathname.startsWith("/owner/orders");
   // Signed-out visitors are sent to /signin and returned to this path afterwards.
   const needsSignIn = isOwnerArea && state.account?.role !== "owner";
 
@@ -56,23 +59,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     router.replace("/owner/verify-status");
   }, [ownerUnverified, state.hydrated, pathname, router]);
 
+  useEffect(() => {
+    if (removedOrderArea && state.hydrated && state.account?.role === "owner") {
+      router.replace("/owner");
+    }
+  }, [removedOrderArea, state.hydrated, state.account, router]);
+
   if (isLanding) {
-    return <>{children}</>;
+    return <>{children}<HelpBot /></>;
   }
 
   return (
     <>
       <NavBar />
+      <HelpBot />
       {/* same layout pattern as the navbar: gutter on the full-width parent,
           Container inside — so content edges align with the navbar card on
           phones, tablets and desktop alike */}
       <main className="app-gutter pb-16 pt-4">
         <Container>
-          {needsSignIn || ownerUnverified ? (
+          {loading ? (
+            <Skeleton rows={3} />
+          ) : needsSignIn || ownerUnverified || removedOrderArea ? (
             <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-20 text-center">
               <Loader2 size={22} className="animate-spin text-ink/30" />
               <p className="text-sm text-ink/50">
-                {needsSignIn
+                {removedOrderArea
+                  ? "Online customer orders are not part of KasiEco — returning to your dashboard…"
+                  : needsSignIn
                   ? state.hydrated
                     ? "Taking you to the sign-in page…"
                     : "Checking your session…"

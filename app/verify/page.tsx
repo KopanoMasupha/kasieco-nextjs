@@ -13,6 +13,9 @@ export default function VerifyPage() {
   const [attemptError, setAttemptError] = useState(false);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [programme, setProgramme] = useState({ name: "", provider: "", type: "Grant", summary: "", officialUrl: "" });
+  const [resetError, setResetError] = useState("");
+  const [resetBusy, setResetBusy] = useState(false);
 
   if (!state.verifierUnlocked) {
     return (
@@ -59,6 +62,35 @@ export default function VerifyPage() {
       decidedBy: "Verifier portal",
     });
     setBusyId(null);
+  }
+
+  async function publishProgramme() {
+    const result = await dispatch({
+      type: "PUBLISH_FUNDING_PROGRAMME",
+      programme: { id: "", ...programme },
+    });
+    if (!result.error) setProgramme({ name: "", provider: "", type: "Grant", summary: "", officialUrl: "" });
+  }
+
+  async function resetDemoData() {
+    if (!window.confirm("Reset all demo shops, stock, pots, applications and verification data? This cannot be undone.")) return;
+    const accessCode = passcode || window.prompt("Enter verifier access code");
+    if (!accessCode) return;
+    setResetBusy(true);
+    setResetError("");
+    try {
+      const response = await fetch("/api/reset", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ accessCode }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not reset demo data");
+      window.location.reload();
+    } catch (cause) {
+      setResetError(cause instanceof Error ? cause.message : "Could not reset demo data");
+      setResetBusy(false);
+    }
   }
 
   return (
@@ -162,6 +194,32 @@ export default function VerifyPage() {
           </div>
         </div>
       )}
+
+      <section className="card space-y-3 p-5">
+        <div>
+          <h2 className="font-semibold text-ink">Advertise a funding opportunity</h2>
+          <p className="text-xs text-ink/45">Published opportunities appear in the owner funding marketplace. Use a provider URL that owners can verify.</p>
+        </div>
+        <input aria-label="Programme name" value={programme.name} onChange={(event) => setProgramme({ ...programme, name: event.target.value })} placeholder="Programme name" className="input" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <input aria-label="Provider" value={programme.provider} onChange={(event) => setProgramme({ ...programme, provider: event.target.value })} placeholder="Provider" className="input" />
+          <input aria-label="Funding type" value={programme.type} onChange={(event) => setProgramme({ ...programme, type: event.target.value })} placeholder="Grant, loan, mentorship…" className="input" />
+        </div>
+        <textarea aria-label="Programme summary" value={programme.summary} onChange={(event) => setProgramme({ ...programme, summary: event.target.value })} placeholder="Plain-language details" rows={3} className="input" />
+        <input aria-label="Official URL" type="url" value={programme.officialUrl} onChange={(event) => setProgramme({ ...programme, officialUrl: event.target.value })} placeholder="https://official-provider.example" className="input" />
+        <button disabled={!programme.name.trim() || !programme.provider.trim() || !programme.summary.trim() || !programme.officialUrl.trim()} onClick={publishProgramme} className="btn-ember px-4 py-2.5 text-sm">
+          Publish opportunity
+        </button>
+      </section>
+
+      <section className="card space-y-2 border-red-200 p-5">
+        <h2 className="font-semibold text-ink">Reset demo data</h2>
+        <p className="text-xs text-ink/50">Restore the seeded demonstration state. This removes changes made during the demo.</p>
+        {resetError && <p role="alert" className="text-sm text-red-600">{resetError}</p>}
+        <button disabled={resetBusy} onClick={resetDemoData} className="btn-outline border-red-200 text-red-700">
+          {resetBusy ? "Resetting…" : "Reset demo data"}
+        </button>
+      </section>
     </div>
   );
 }

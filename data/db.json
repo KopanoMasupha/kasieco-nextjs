@@ -321,7 +321,7 @@
       "category": "bakery",
       "unit": "loaf",
       "price": 18,
-      "stockQty": 10,
+      "stockQty": 13,
       "hidden": false
     },
     {
@@ -341,8 +341,8 @@
       "category": "groceries",
       "unit": "bottle",
       "price": 35,
-      "stockQty": 0,
-      "hidden": false
+      "stockQty": 3,
+      "hidden": true
     },
     {
       "id": "g20",
@@ -438,6 +438,125 @@
   ],
   "pools": [
     {
+      "id": "pool-1791630780508-3276",
+      "productName": "Baked beans 410g (case of 24)",
+      "unitLabel": "case",
+      "supplierName": "Mamelodi Cash & Carry",
+      "minQty": 8,
+      "tiers": [
+        {
+          "minQty": 0,
+          "price": 288
+        },
+        {
+          "minQty": 6,
+          "price": 264
+        },
+        {
+          "minQty": 12,
+          "price": 240
+        }
+      ],
+      "deliveryCents": 40000,
+      "supplierVerified": true,
+      "commitments": [
+        {
+          "shopId": "shop-sipho",
+          "shopName": "Sipho's Corner Store",
+          "township": "Mamelodi",
+          "qty": 5,
+          "paid": true,
+          "paidCents": 186880,
+          "joinedAt": "2026-10-10T11:13:00.606Z"
+        },
+        {
+          "shopId": "shop-mama-joy",
+          "shopName": "Mama Joy's Kota Corner",
+          "township": "Mamelodi",
+          "qty": 16,
+          "paid": true,
+          "paidCents": 422156,
+          "joinedAt": "2026-10-10T11:14:18.955Z"
+        }
+      ],
+      "closesAt": "2026-10-17T11:13:00.508Z",
+      "status": "open",
+      "ownerShopId": "shop-sipho",
+      "ledger": [
+        {
+          "id": "entry-1791630780608-7541",
+          "type": "contribution",
+          "shopId": "shop-sipho",
+          "amountCents": 186880,
+          "reference": "KE-1791630780608-3478",
+          "method": "instant-eft",
+          "balanceCents": 186880,
+          "createdAt": "2026-10-10T11:13:00.608Z"
+        },
+        {
+          "id": "entry-1791630858956-8944",
+          "type": "contribution",
+          "shopId": "shop-mama-joy",
+          "amountCents": 422156,
+          "reference": "KE-1791630858956-9465",
+          "method": "instant-eft",
+          "balanceCents": 609036,
+          "createdAt": "2026-10-10T11:14:18.956Z"
+        }
+      ],
+      "balanceCents": 609036
+    },
+    {
+      "id": "pool-1791628181768-8954",
+      "productName": "Cooking oil 750ml (case of 12)",
+      "unitLabel": "case",
+      "supplierName": "Kasi Wholesalers",
+      "minQty": 10,
+      "tiers": [
+        {
+          "minQty": 0,
+          "price": 320
+        },
+        {
+          "minQty": 8,
+          "price": 295
+        },
+        {
+          "minQty": 15,
+          "price": 270
+        }
+      ],
+      "deliveryCents": 45000,
+      "supplierVerified": true,
+      "commitments": [
+        {
+          "shopId": "shop-thandi",
+          "shopName": "Thandi's Spaza",
+          "township": "Mamelodi",
+          "qty": 5,
+          "paid": true,
+          "paidCents": 208200,
+          "joinedAt": "2026-10-10T10:29:41.799Z"
+        }
+      ],
+      "closesAt": "2026-10-17T10:29:41.768Z",
+      "status": "open",
+      "ownerShopId": "shop-thandi",
+      "ledger": [
+        {
+          "id": "entry-1791628181799-2187",
+          "type": "contribution",
+          "shopId": "shop-thandi",
+          "amountCents": 208200,
+          "reference": "KE-1791628181799-4435",
+          "method": "wallet",
+          "balanceCents": 208200,
+          "createdAt": "2026-10-10T10:29:41.800Z"
+        }
+      ],
+      "balanceCents": 208200
+    },
+    {
       "id": "pool-maize",
       "productName": "Maize meal 5kg",
       "unitLabel": "bag",
@@ -469,7 +588,8 @@
           "township": "Mamelodi",
           "qty": 8,
           "paid": true,
-          "joinedAt": "2026-09-10T09:00:00Z"
+          "joinedAt": "2026-09-10T09:00:00Z",
+          "paidCents": 122520
         },
         {
           "shopId": "shop-sipho",
@@ -477,11 +597,56 @@
           "township": "Mamelodi",
           "qty": 6,
           "paid": true,
-          "joinedAt": "2026-09-11T10:30:00Z"
+          "joinedAt": "2026-09-11T10:30:00Z",
+          "paidCents": 77426
+        },
+        {
+          "shopId": "shop-bongani",
+          "shopName": "Bongani's Tuckshop",
+          "township": "Soshanguve",
+          "qty": 117,
+          "paid": true,
+          "joinedAt": "2026-09-22T05:32:10.147Z",
+          "paidCents": 947175
         }
       ],
       "closesAt": "2026-09-25T17:00:00Z",
-      "status": "open"
+      "status": "delivered",
+      "ledger": [
+        {
+          "id": "entry-1791628079427-1446",
+          "type": "contribution",
+          "shopId": "shop-thandi",
+          "amountCents": 122520,
+          "reference": "KE-SEED-POOL-MAIZE-1",
+          "method": "wallet",
+          "balanceCents": 122520,
+          "createdAt": "2026-09-10T09:00:00Z"
+        },
+        {
+          "id": "entry-1791628079427-7393",
+          "type": "contribution",
+          "shopId": "shop-sipho",
+          "amountCents": 77426,
+          "reference": "KE-SEED-POOL-MAIZE-2",
+          "method": "wallet",
+          "balanceCents": 199946,
+          "createdAt": "2026-09-11T10:30:00Z"
+        },
+        {
+          "id": "entry-1791628079427-720",
+          "type": "contribution",
+          "shopId": "shop-bongani",
+          "amountCents": 947175,
+          "reference": "KE-SEED-POOL-MAIZE-3",
+          "method": "wallet",
+          "balanceCents": 1147121,
+          "createdAt": "2026-09-22T05:32:10.147Z"
+        }
+      ],
+      "balanceCents": 1147121,
+      "deliveryCents": 45000,
+      "ownerShopId": "shop-thandi"
     },
     {
       "id": "pool-oil",
@@ -511,11 +676,27 @@
           "township": "Soshanguve",
           "qty": 3,
           "paid": true,
-          "joinedAt": "2026-09-12T08:15:00Z"
+          "joinedAt": "2026-09-12T08:15:00Z",
+          "paidCents": 142920
         }
       ],
       "closesAt": "2026-09-27T17:00:00Z",
-      "status": "open"
+      "status": "open",
+      "ledger": [
+        {
+          "id": "entry-1791628079427-4680",
+          "type": "contribution",
+          "shopId": "shop-bongani",
+          "amountCents": 142920,
+          "reference": "KE-SEED-POOL-OIL-1",
+          "method": "wallet",
+          "balanceCents": 142920,
+          "createdAt": "2026-09-12T08:15:00Z"
+        }
+      ],
+      "balanceCents": 142920,
+      "deliveryCents": 45000,
+      "ownerShopId": "shop-bongani"
     },
     {
       "id": "pool-sugar",
@@ -540,32 +721,51 @@
       ],
       "commitments": [
         {
-          "shopId": "shop-thandi",
-          "shopName": "Thandi's Spaza",
-          "township": "Mamelodi",
-          "qty": 5,
-          "paid": false,
-          "joinedAt": "2026-09-14T11:00:00Z"
-        },
-        {
-          "shopId": "shop-butchery",
-          "shopName": "Mandla's Butchery",
-          "township": "Soshanguve",
-          "qty": 4,
-          "paid": false,
-          "joinedAt": "2026-09-15T09:20:00Z"
-        },
-        {
           "shopId": "shop-mama-joy",
           "shopName": "Mama Joy's Kota Corner",
           "township": "Mamelodi",
           "qty": 6,
           "paid": true,
-          "joinedAt": "2026-09-15T14:00:00Z"
+          "joinedAt": "2026-09-15T14:00:00Z",
+          "paidCents": 72540
+        },
+        {
+          "shopId": "shop-bongani",
+          "shopName": "Bongani's Tuckshop",
+          "township": "Soshanguve",
+          "qty": 120,
+          "paid": true,
+          "joinedAt": "2026-09-22T05:33:32.954Z",
+          "paidCents": 483497
         }
       ],
       "closesAt": "2026-09-24T17:00:00Z",
-      "status": "delivered"
+      "status": "delivered",
+      "ledger": [
+        {
+          "id": "entry-1791628079427-3112",
+          "type": "contribution",
+          "shopId": "shop-mama-joy",
+          "amountCents": 72540,
+          "reference": "KE-SEED-POOL-SUGAR-1",
+          "method": "wallet",
+          "balanceCents": 72540,
+          "createdAt": "2026-09-15T14:00:00Z"
+        },
+        {
+          "id": "entry-1791628079427-7819",
+          "type": "contribution",
+          "shopId": "shop-bongani",
+          "amountCents": 483497,
+          "reference": "KE-SEED-POOL-SUGAR-2",
+          "method": "wallet",
+          "balanceCents": 556037,
+          "createdAt": "2026-09-22T05:33:32.954Z"
+        }
+      ],
+      "balanceCents": 556037,
+      "deliveryCents": 45000,
+      "ownerShopId": "shop-mama-joy"
     }
   ],
   "listings": [
@@ -1024,5 +1224,57 @@
       "demo": true,
       "createdAt": "2026-09-21T16:52:43.975Z"
     }
-  ]
+  ],
+  "sales": [],
+  "fundingProgrammes": [
+    {
+      "id": "spaza-support",
+      "name": "Spaza Shop Support Fund",
+      "provider": "DSBD via NEF and SEDFA",
+      "type": "Grant + loan",
+      "summary": "Support for qualifying spaza shops. Confirm the latest package, eligibility and application process with the programme administrator.",
+      "officialUrl": "https://www.dsbd.gov.za/",
+      "requiresCipc": true,
+      "requiresPermit": true
+    },
+    {
+      "id": "trep",
+      "name": "Township and Rural Entrepreneurship Programme (TREP)",
+      "provider": "DSBD via SEDFA",
+      "type": "Blended finance",
+      "summary": "Financial and non-financial support for qualifying township and rural enterprises. Check current calls and terms with SEDFA.",
+      "officialUrl": "https://www.dsbd.gov.za/",
+      "requiresCipc": true
+    },
+    {
+      "id": "nyda-grant",
+      "name": "NYDA Grant Programme",
+      "provider": "National Youth Development Agency",
+      "type": "Grant",
+      "summary": "Youth enterprise support for eligible applicants; age and business requirements apply.",
+      "officialUrl": "https://www.nyda.gov.za/",
+      "ageMin": 18,
+      "ageMax": 35
+    },
+    {
+      "id": "tholoana",
+      "name": "Tholoana Enterprise Programme",
+      "provider": "SAB Foundation",
+      "type": "Mentorship and growth support",
+      "summary": "Enterprise development programme. Application rounds and closing dates can change; check the official programme page.",
+      "deadline": "2026-10-13T23:59:59+02:00",
+      "officialUrl": "https://sabfoundation.co.za/"
+    },
+    {
+      "id": "wrseta",
+      "name": "Spaza Shop Training & Support",
+      "provider": "Wholesale & Retail SETA with SEDFA",
+      "type": "Training",
+      "summary": "Training opportunities and, for some cohorts, related business support. Confirm availability with the provider.",
+      "officialUrl": "https://www.wrseta.org.za/"
+    }
+  ],
+  "fundingProfiles": [],
+  "fundingApplications": [],
+  "schemaVersion": 3
 }

@@ -13,6 +13,10 @@ import {
   Certificate,
   Course,
   Account,
+  StockSale,
+  FundingApplication,
+  FundingProfile,
+  FundingProgramme,
 } from "../types";
 import {
   SEED_SHOPS,
@@ -28,8 +32,11 @@ import {
   SEED_ACCOUNTS,
   DEMO_PIN_HASH,
 } from "../seed";
+import { seedPoolLedger } from "../pot";
+import { SEED_FUNDING_PROGRAMMES } from "../funding";
 
 export interface SharedDB {
+  schemaVersion: number;
   shops: Shop[];
   goods: Good[];
   orders: ConsumerOrder[];
@@ -42,6 +49,10 @@ export interface SharedDB {
   courses: Course[];
   /** Sign-in accounts — server-side only, stripped from every API response. */
   accounts: Account[];
+  sales: StockSale[];
+  fundingProgrammes: FundingProgramme[];
+  fundingProfiles: FundingProfile[];
+  fundingApplications: FundingApplication[];
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -53,10 +64,11 @@ let writePath = DB_PATH;
 
 function seedDB(): SharedDB {
   return {
+    schemaVersion: 3,
     shops: SEED_SHOPS,
     goods: SEED_GOODS,
     orders: SEED_ORDERS,
-    pools: SEED_POOLS,
+    pools: SEED_POOLS.map(seedPoolLedger),
     listings: SEED_LISTINGS,
     threads: SEED_THREADS,
     trainingSessions: SEED_TRAINING_SESSIONS,
@@ -64,6 +76,10 @@ function seedDB(): SharedDB {
     certificates: SEED_CERTIFICATES,
     courses: SEED_COURSES,
     accounts: SEED_ACCOUNTS,
+    sales: [],
+    fundingProgrammes: SEED_FUNDING_PROGRAMMES,
+    fundingProfiles: [],
+    fundingApplications: [],
   };
 }
 
@@ -98,7 +114,12 @@ function ensureAccounts(db: SharedDB): { db: SharedDB; changed: boolean } {
     changed = true;
   }
 
-  return changed ? { db: { ...db, accounts }, changed } : { db, changed };
+  const pools = db.pools.map(seedPoolLedger);
+  const poolsChanged = pools.some((pool, index) => pool !== db.pools[index]);
+  const versionChanged = db.schemaVersion !== 3;
+  return changed || poolsChanged || versionChanged
+    ? { db: { ...db, schemaVersion: 3, accounts, pools }, changed: true }
+    : { db, changed: false };
 }
 
 // module-level cache so repeated reads in the same process don't hit disk every time
@@ -109,7 +130,14 @@ function persistToDisk(db: SharedDB): void {
   const json = JSON.stringify(db, null, 2);
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(writePath, json, "utf-8");
+    const temporaryPath = `${writePath}.${process.pid}.tmp`;
+    try {
+      fs.writeFileSync(temporaryPath, json, "utf-8");
+      fs.renameSync(temporaryPath, writePath);
+    } catch (error) {
+      if (fs.existsSync(temporaryPath)) fs.unlinkSync(temporaryPath);
+      throw error;
+    }
   } catch {
     // read-only deploy dir — retry into the temp dir (writable on lambdas)
     fs.mkdirSync(path.dirname(TMP_PATH), { recursive: true });
@@ -122,7 +150,14 @@ export function readDB(): SharedDB {
   if (cache) return cache;
   try {
     const raw = fs.readFileSync(DB_PATH, "utf-8");
-    const parsed = JSON.parse(raw) as SharedDB;
+    const loaded = JSON.parse(raw) as SharedDB;
+    const parsed = {
+      ...loaded,
+      sales: Array.isArray(loaded.sales) ? loaded.sales : [],
+      fundingProgrammes: Array.isArray(loaded.fundingProgrammes) ? loaded.fundingProgrammes : SEED_FUNDING_PROGRAMMES,
+      fundingProfiles: Array.isArray(loaded.fundingProfiles) ? loaded.fundingProfiles : [],
+      fundingApplications: Array.isArray(loaded.fundingApplications) ? loaded.fundingApplications : [],
+    };
     const { db: migrated, changed } = ensureAccounts(parsed);
     cache = migrated;
     if (changed) {

@@ -9,7 +9,7 @@ import Container from "./Container";
 import {
   Boxes,
   ChevronDown,
-  ClipboardList,
+  Coins,
   FileCheck,
   GraduationCap,
   LogOut,
@@ -17,7 +17,7 @@ import {
   Repeat,
   ShieldCheck,
   Store,
-  Users,
+  Wallet,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -46,11 +46,12 @@ export default function NavBar() {
   const consumerLinks = [{ href: "/consumer", label: "Find shops", icon: MapPin }];
 
   const ownerLinks = [
-    { href: "/owner", label: "Dashboard", icon: Store },
-    { href: "/owner/goods", label: "My goods", icon: Boxes },
-    { href: "/owner/orders", label: "Orders", icon: ClipboardList },
-    { href: "/owner/pools", label: "Buy", icon: Users },
+    { href: "/owner", label: "Home", icon: Store },
+    { href: "/owner/pools", label: "Bulk buy", icon: Coins },
     { href: "/owner/exchange", label: "Exchange", icon: Repeat },
+    { href: "/owner/goods", label: "My stock", icon: Boxes },
+    { href: "/owner/funding", label: "Funding", icon: Wallet },
+    { href: "/owner/compliance", label: "Compliance", icon: ShieldCheck },
   ];
 
   // Unverified owners get a verification-focused nav until they're compliant.
@@ -75,7 +76,7 @@ export default function NavBar() {
         <div className="card flex items-center gap-3 px-4 py-3 shadow-sm">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <span className="text-xl font-extrabold tracking-tight text-ink">
-              Kasi-Connect<span className="text-ember">.</span>
+              KasiEco<span className="text-ember">.</span>
             </span>
           </Link>
 
@@ -252,4 +253,3 @@ export default function NavBar() {
     </header>
   );
 }
-

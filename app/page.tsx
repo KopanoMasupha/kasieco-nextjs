@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { isVerified } from "@/lib/compliance";
-import TuckShopIllustration from "@/components/TuckShopIllustration";
+import TownshipSlideshow from "@/components/TownshipSlideshow";
 import Container from "@/components/Container";
 import {
   ArrowRight,
@@ -35,7 +35,7 @@ export default function LandingPage() {
       <header className="app-gutter py-6">
         <Container className="flex items-center justify-between">
         <span className="text-xl font-extrabold tracking-tight text-ink">
-          Kasi-Connect<span className="text-ember">.</span>
+          KasiEco<span className="text-ember">.</span>
         </span>
         <div className="flex items-center gap-4">
           <Link href="/verify" className="hidden text-xs font-medium text-ink/40 hover:text-ink/60 sm:inline">
@@ -84,9 +84,9 @@ export default function LandingPage() {
             Swap stock. <span className="text-ember">Get found.</span>
           </h1>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-ink/60">
-            The platform for township shops: pool orders for wholesale prices, trade
-            surplus stock with shops nearby, and get discovered by customers searching
-            for what you sell — all behind a government-backed compliance check.
+            The platform for township shops: pool wholesale buying, trade surplus
+            stock with shops nearby, and get discovered by customers searching for
+            what you sell — all behind a compliance check.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <button onClick={goAsConsumer} className="btn-ember px-5 py-3.5 text-sm">
@@ -104,8 +104,8 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.5 }}>
-          <TuckShopIllustration className="w-full" />
+        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.5 }} className="space-y-3">
+          <TownshipSlideshow />
         </motion.div>
         </Container>
       </section>
@@ -121,8 +121,8 @@ export default function LandingPage() {
             <div>
               <h2 className="font-bold text-ink">Shopping nearby?</h2>
               <p className="mt-1 max-w-xl text-sm leading-relaxed text-ink/55">
-                The shop finder maps every verified kasi shop around you, shows the stock
-                they have in and what it costs — no account needed.
+                The shop finder maps verified kasi shops around you and shows available
+                stock and prices. Contact or visit a shop to buy — no account needed.
               </p>
             </div>
           </div>
@@ -133,14 +133,15 @@ export default function LandingPage() {
         </Container>
       </section>
 
-      {/* what Kasi-Connect does */}
+      {/* what KasiEco does */}
       <section className="app-gutter pb-16">
         <Container>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { title: "Buy", color: "text-ember-dark", body: "Join a pool and watch the price fall as more shops join." },
-            { title: "Stock exchange", color: "text-leaf", body: "Short on oil? Swap or sell with a shop nearby, safely on record." },
-            { title: "Discovery", color: "text-ink/50", body: "Customers search for what they need and find who has it, nearby." },
+            { title: "Shared pot", color: "text-ember-dark", body: "Pay into a sandbox pot and watch the wholesale price fall as shops join." },
+            { title: "Stock exchange", color: "text-leaf", body: "Short on oil? Make a fair-value offer with a verified shop nearby." },
+            { title: "Customer discovery", color: "text-ink/50", body: "Customers find verified shops with the stock they need, then visit in person." },
+            { title: "Funding", color: "text-purple-600", body: "Explore small-business programmes and track your application preparation." },
           ].map((l, i) => (
             <motion.div
               key={l.title}
@@ -197,7 +198,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="app-gutter border-t border-ink/5 py-8 text-center text-xs text-ink/35">
-        Kasi-Connect — a Mzansi Business Digital Platform prototype ·{" "}
+        KasiEco — a Mzansi Business Digital Platform prototype ·{" "}
         <Link href="/verify" className="underline hover:text-ink/55">
           Government verifier portal
         </Link>

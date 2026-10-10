@@ -1,8 +1,7 @@
-# Kasi-Connect — Mzansi Business Digital Platform
+# KasiEco — Mzansi Business Digital Platform
 
-A working Next.js prototype for both **consumers** and **shop owners**, now with a
-real (if minimal) backend, a compliance/LMS verification flow, and AI-assisted
-stock insights.
+A Next.js prototype where township shops **buy together, swap stock, and get
+found by customers**. Trading features are gated on shop verification.
 
 ## Run it locally
 
@@ -14,24 +13,41 @@ npm run dev
 Open http://localhost:3000 — that's it. No database setup needed; the app seeds
 its own data on first run.
 
-Optional: copy `.env.example` to `.env.local` and add `ANTHROPIC_API_KEY` if you
-want the "AI stock insights" card on the owner dashboard to write its narrative
-with Claude instead of the built-in plain-language template. Everything works
-without it.
+Optional: copy `.env.example` to `.env.local` and add `ANTHROPIC_API_KEY` for
+Claude-generated stock summaries and help-bot answers. Both features also work
+offline using built-in rules and product information.
 
 ## What changed since the first version
 
-**A real backend.** Shared platform data (shops, goods, orders, pools, exchange
-listings, training sessions, verification requests, certificates) now lives on
-the server in `data/db.json`, served through two API routes:
+**A shared backend.** Shared platform data (shops, stock and sales, bulk-buy
+pots and ledgers, exchange listings, funding, training, verification requests
+and certificates) lives on the server in `data/db.json`, served through:
 - `GET /api/state` — reads the current shared state
 - `POST /api/action` — the only way to change it; every mutation runs through
   `lib/server/reducer.ts`, which also enforces the verification gate (see below)
   server-side, not just in the UI
 
-Only per-browser session things — which role you're viewing as and which shop
-you're "acting as" — stay in `localStorage`, the same as before. (The customer
-side is browse-only now, so there's no basket or customer order history to keep.)
+Owner sign-in uses a phone number and PIN; shoppers browse without an account.
+Customer ordering, payment and order history are not part of the prototype.
+
+**Shared-pot bulk buying.** Verified shops can start or join a catalogue pot.
+Contributions, rebates, refunds and payouts are recorded as append-only ledger
+entries in integer cents. Shops see their quoted goods, delivery and service-fee
+shares before paying; closing at the minimum rebates credits and pays the
+supplier, driver and fee, while cancellation refunds contributions. The
+payments are simulated—no real money is transferred or held—and each pot page
+includes a ledger audit proof. The first contributor owns the pot and can close
+or cancel it.
+
+**Funding marketplace.** `/owner/funding` lists seeded South African funding
+programmes, a five-question eligibility pre-check and application tracking.
+The verifier portal can publish an opportunity. Confirm programme details and
+deadlines with the official provider.
+
+**Stock assistant and exchange.** My stock (`/owner/goods`) records sales and
+estimates days of stock remaining, flags low and surplus stock, and suggests
+nearby verified shops. Exchange offers use average listed shelf prices to show
+the value difference and a suggested cash top-up; both shops must agree.
 
 **Compliance & verification.** Registering a shop now leaves it in `draft`
 status — invisible to customers, unable to trade — until it's verified one of
@@ -55,24 +71,25 @@ government-side review queue; see "What's still a prototype" below.
 run by the Wholesale & Retail SETA with Sefa (registration, food safety,
 inventory, bookkeeping), which owners can register or cancel for.
 
-**Verification gates everything**, not just pools: a non-verified shop cannot
-appear on the consumer map or shop page, post or respond to an exchange
-listing, join a bulk-buying pool, or receive orders. This is enforced in the
-server reducer, so it can't be bypassed from the browser.
+**Verification gates trading.** Unverified shops are hidden from customers and
+cannot start or join a bulk-buy pot or post and respond to exchange listings.
+These checks run in the server reducer.
 
-**AI stock insights** on the owner dashboard: a heuristic engine
-(`lib/ai/insights.ts`) flags goods that are low on stock and selling, or
-sitting unsold, and — for overstocked items — looks for a nearby *verified*
-shop that's low on the same thing or has posted a "need" listing for it, so
-you can offer it to them with one click. If `ANTHROPIC_API_KEY` is set, the
-same data is turned into a short natural-language write-up by Claude; without
-it, a template sentence does the same job.
+**My stock** uses the sales log rather than customer orders. The rules-based
+assistant (`lib/ai/insights.ts`) estimates sales pace and days of stock,
+highlights stock-outs and surplus, and looks for a nearby verified shop that's
+short of the same item. Claude can write the summary when `ANTHROPIC_API_KEY`
+is set; otherwise a built-in summary is used.
 
-**New landing page** at `/` — a marketing front door with a hero illustration, a
-link through to the shopper shop finder, the three things the platform does
-(Buy · Stock exchange · Discovery) and a compliance trust section showing how
-many shops are verified vs. still in review. The map itself lives on `/consumer`
-so the landing page stays a front door, not an app.
+**Landing and customer discovery.** `/` has a credited, rotating township
+photo slideshow and a live shared-pot total. `/consumer` lets customers search
+verified shops and in-stock items. Shop pages show prices, stock levels,
+South-African-time opening status, directions, phone and available social links.
+Customers visit the shop to buy; there is no online checkout.
+
+**Help bot.** The help button on each page answers from the built-in product
+guide and is explicit about features that are not available yet. Claude is
+optional.
 
 ## Signing in and out (shop owners only)
 
@@ -109,8 +126,8 @@ that isn't in `data/db.json` any more, the app falls back to a real shop so
 nothing dead-ends.
 
 **The customer side ("I'm shopping") is browse-only.** Customers search for
-goods, see which shops have stock and at what price, and can phone the shop —
-there is no basket, checkout or customer order history. Buying happens in store.
+goods, see verified shops with stock and prices, check shop hours and contact
+the shop. There is no basket, checkout or customer order history.
 
 A good walkthrough:
 1. Land on `/`, note the "verified / in review" stat at the bottom, then click
@@ -123,12 +140,17 @@ A good walkthrough:
    quiz → certificate + confetti → shop is now live on the map.
 4. Use the account menu → **Sign out** → sign back in as a different demo shop
    (e.g. Sipho's Corner Store) to show two shops trading in the exchange.
-5. Open `/owner/orders` to accept, reject or progress an existing order (orders
-   are seeded demo data now that customers can't buy in-app) and `/owner` for the
-   **AI stock insights** card.
-6. Open `/verify` (code `GOV2026`) to show the government side: Lindiwe's
-   Fresh Produce is seeded as `pending` with two documents ready to
-   approve or reject.
+5. Open **Bulk buy** → a seeded pot. Show the price tiers, contribution
+   breakdown, payment ledger and ledger proof. Use **Simulate another shop
+   joining** to show repricing, then close a pot at its minimum or cancel one
+   below minimum to demonstrate settlement and refunds. These payments are a
+   sandbox simulation.
+6. Visit **Funding** to complete the eligibility pre-check and track a
+   programme; visit **My stock** to record a sale and see the stock assistant;
+   visit **Exchange** to see nearby listings and an offer's price balance.
+7. Visit `/verify` (code `GOV2026`) to show the compliance register, review
+   queue, funding opportunity form and demo reset. The help button is available
+   throughout; ask whether customers can order online.
 
 ## What's still a prototype (be upfront about this if asked)
 
@@ -145,6 +167,16 @@ A good walkthrough:
 - **No cross-checking against CIPC/municipal registers.** A verifier's
   approval is currently a judgement call from what's typed in, not an API
   lookup against the issuing authority.
+- **Payments are simulated.** The ledger arithmetic and settlement rules run in
+  the app, but no licensed payment gateway, trust account, real refund or real
+  rebate is connected. A production deployment needs a regulated provider,
+  webhooks and legal advice on holding client funds.
+- **The JSON file is not a concurrent production database.** A persistent
+  single-server host is suitable for the prototype; production needs a
+  transactional database and proper access controls.
+- **Some content is demo or externally hosted.** Funding programme details
+  should be confirmed with providers; slideshow photos load from Wikimedia
+  Commons and need an internet connection.
 
 ## Hosting it for real
 

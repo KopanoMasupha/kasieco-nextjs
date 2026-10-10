@@ -51,9 +51,14 @@ export default function RegisterShopPage() {
   const [pinConfirm, setPinConfirm] = useState("");
   const [category, setCategory] = useState<ShopCategory>("spaza");
   const [township, setTownship] = useState("Mamelodi");
-  const [hours, setHours] = useState("07:00 - 19:00 every day");
+  const [openingTime, setOpeningTime] = useState("07:00");
+  const [closingTime, setClosingTime] = useState("19:00");
+  const [openDays, setOpenDays] = useState("every day");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [tiktok, setTiktok] = useState("");
   const [offersDelivery, setOffersDelivery] = useState(false);
-  const [acceptsOrders, setAcceptsOrders] = useState(true);
   const [lat, setLat] = useState(-25.7069);
   const [lng, setLng] = useState(28.3765);
   const [goods, setGoods] = useState<DraftGood[]>([
@@ -97,9 +102,10 @@ export default function RegisterShopPage() {
         township,
         lat,
         lng,
-        hours,
+        hours: `${openingTime} - ${closingTime} ${openDays}`,
         offersDelivery,
-        acceptsOrders,
+        acceptsOrders: false,
+        socialLinks: { whatsapp, facebook, instagram, tiktok },
         verified: false,
         verificationStatus: "draft",
         verificationMethod: null,
@@ -285,7 +291,21 @@ export default function RegisterShopPage() {
 
           <div>
             <p className="label">Opening hours</p>
-            <input value={hours} onChange={(e) => setHours(e.target.value)} className="input" />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="text-xs text-ink/50">Opens
+                <input type="time" value={openingTime} onChange={(event) => setOpeningTime(event.target.value)} className="input mt-1" />
+              </label>
+              <label className="text-xs text-ink/50">Closes
+                <input type="time" value={closingTime} onChange={(event) => setClosingTime(event.target.value)} className="input mt-1" />
+              </label>
+              <label className="text-xs text-ink/50">Days
+                <select value={openDays} onChange={(event) => setOpenDays(event.target.value)} className="input mt-1">
+                  <option value="every day">Every day</option>
+                  <option value="Mon - Sat">Monday to Saturday</option>
+                  <option value="Mon - Fri">Monday to Friday</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -298,14 +318,19 @@ export default function RegisterShopPage() {
               />
               Offers delivery
             </label>
-            <label className="flex items-center gap-2.5 rounded-xl2 border border-ink/10 px-4 py-3 text-sm">
-              <input
-                type="checkbox"
-                checked={acceptsOrders}
-                onChange={(e) => setAcceptsOrders(e.target.checked)}
-                className="h-4 w-4 accent-ember"
-              />
-              Accepts online orders
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs text-ink/50">WhatsApp number
+              <input value={whatsapp} onChange={(event) => setWhatsapp(event.target.value)} className="input mt-1" placeholder="Defaults to your shop phone" />
+            </label>
+            <label className="text-xs text-ink/50">Facebook link or handle
+              <input value={facebook} onChange={(event) => setFacebook(event.target.value)} className="input mt-1" placeholder="Your shop page" />
+            </label>
+            <label className="text-xs text-ink/50">Instagram link or handle
+              <input value={instagram} onChange={(event) => setInstagram(event.target.value)} className="input mt-1" placeholder="@yourshop" />
+            </label>
+            <label className="text-xs text-ink/50">TikTok link or handle
+              <input value={tiktok} onChange={(event) => setTiktok(event.target.value)} className="input mt-1" placeholder="@yourshop" />
             </label>
           </div>
 

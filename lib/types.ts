@@ -57,6 +57,12 @@ export interface Shop {
   hours: string;
   offersDelivery: boolean;
   acceptsOrders: boolean;
+  socialLinks?: {
+    whatsapp?: string;
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
+  };
   verified: boolean; // legacy display flag, derived from verificationStatus === "verified"
   verificationStatus: VerificationStatus;
   verificationMethod?: "document" | "course" | null;
@@ -73,6 +79,46 @@ export interface Good {
   price: number;
   stockQty: number;
   hidden: boolean;
+}
+
+export interface StockSale {
+  id: string;
+  shopId: string;
+  goodId: string;
+  qty: number;
+  createdAt: string;
+}
+
+export interface FundingProgramme {
+  id: string;
+  name: string;
+  provider: string;
+  type: string;
+  summary: string;
+  deadline?: string;
+  officialUrl: string;
+  ageMin?: number;
+  ageMax?: number;
+  monthsTradingMin?: number;
+  requiresCipc?: boolean;
+  requiresPermit?: boolean;
+}
+
+export interface FundingProfile {
+  shopId: string;
+  age: number;
+  monthsTrading: number;
+  cipc: boolean;
+  tradingPermit: boolean;
+  womanOwned: boolean;
+}
+
+export interface FundingApplication {
+  id: string;
+  shopId: string;
+  programmeId: string;
+  status: "saved" | "preparing" | "applied";
+  updatedAt: string;
 }
 
 export type OrderStatus = "placed" | "accepted" | "ready" | "collected" | "rejected";
@@ -114,7 +160,29 @@ export interface PoolCommitment {
   qty: number;
   paid: boolean;
   joinedAt: string;
+  paidCents?: number;
 }
+
+export type PotLedgerEntryType =
+  | "contribution"
+  | "rebate"
+  | "refund"
+  | "wholesaler"
+  | "driver"
+  | "service-fee";
+
+export interface PotLedgerEntry {
+  id: string;
+  type: PotLedgerEntryType;
+  shopId?: string;
+  amountCents: number;
+  balanceCents: number;
+  reference: string;
+  method?: PotPaymentMethod;
+  createdAt: string;
+}
+
+export type PotPaymentMethod = "instant-eft" | "bank-card" | "wallet";
 
 export interface Pool {
   id: string;
@@ -127,6 +195,10 @@ export interface Pool {
   commitments: PoolCommitment[];
   closesAt: string;
   status: "open" | "closed" | "delivering" | "delivered";
+  ownerShopId?: string | null;
+  deliveryCents?: number;
+  ledger?: PotLedgerEntry[];
+  balanceCents?: number;
 }
 
 export type ListingType = "have" | "need";
@@ -154,6 +226,8 @@ export interface ExchangeOffer {
   offerGive: string;
   offerReceive: string;
   cashAdjustment: number;
+  giveValueCents?: number;
+  receiveValueCents?: number;
   status: "pending" | "accepted" | "declined";
   createdAt: string;
 }
@@ -333,6 +407,7 @@ export interface StockInsight {
   name: string;
   unitsSoldRecent: number;
   stockQty: number;
+  daysOfStockLeft: number | null;
   status: StockInsightStatus;
   suggestion: string;
   matchShopId?: string;
@@ -347,4 +422,3 @@ export interface AiReport {
   narrativeSource: "template" | "claude";
   insights: StockInsight[];
 }
-

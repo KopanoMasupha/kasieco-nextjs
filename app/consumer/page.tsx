@@ -72,8 +72,7 @@ export default function ConsumerHome() {
         const matches = q
           ? shopGoods.filter((g) => g.name.toLowerCase().includes(q))
           : shopGoods;
-        const nameMatches = q ? shop.name.toLowerCase().includes(q) : false;
-        return { shop, dist, matches, qualifies: q ? matches.length > 0 || nameMatches : true };
+        return { shop, dist, matches, qualifies: q ? matches.length > 0 : shopGoods.length > 0 };
       })
       .filter((r) => r.qualifies && r.dist <= Math.max(area.radiusKm, 3))
       .sort((a, b) => a.dist - b.dist);

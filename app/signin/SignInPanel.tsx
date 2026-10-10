@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { SessionAccount } from "@/lib/types";
-import { KeyRound, Loader2, LogIn, MapPin, Phone, Store } from "lucide-react";
+import { BadgeCheck, KeyRound, Loader2, LogIn, MapPin, Phone, Store } from "lucide-react";
 
 interface DemoAccount {
   name: string;
@@ -66,13 +66,6 @@ export default function SignInPanel({ next }: { next?: string }) {
 
   const destination = next || "/owner";
 
-  // already signed in — no "signed in" popup; go straight to the destination
-  useEffect(() => {
-    if (state.account && state.hydrated) {
-      router.replace(destination);
-    }
-  }, [state.account, state.hydrated, destination, router]);
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -103,10 +96,29 @@ export default function SignInPanel({ next }: { next?: string }) {
     setError(null);
   }
 
-  // already signed in — the redirect effect above sends the user on their way;
-  // render nothing so no "signed in" popup ever appears
   if (state.account) {
-    return null;
+    const signedIn = state.account;
+    return (
+      <div className="mx-auto max-w-md space-y-5">
+        <div className="card p-6 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-leaf/10 text-leaf">
+            <BadgeCheck size={26} />
+          </div>
+          <h1 className="mt-3 text-xl font-bold text-ink">You're signed in, {signedIn.name}</h1>
+          <p className="mt-1 text-sm text-ink/55">
+            Signed in as a shop owner · {signedIn.phone}
+          </p>
+          <div className="mt-5 flex flex-col gap-2">
+            <Link href="/owner" className="btn-dark px-5 py-3 text-sm">
+              <Store size={15} /> Go to my dashboard
+            </Link>
+            <Link href="/signout" className="btn-outline px-5 py-3 text-sm">
+              Sign out
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -177,7 +189,7 @@ export default function SignInPanel({ next }: { next?: string }) {
           </button>
 
           <div className="border-t border-ink/5 pt-4 text-center text-xs text-ink/45">
-            No shop on Kasi-Connect yet?{" "}
+            No shop on KasiEco yet?{" "}
             <Link href="/owner/register" className="font-semibold text-ember-dark hover:text-ember">
               Register your shop
             </Link>{" "}
@@ -229,4 +241,3 @@ export default function SignInPanel({ next }: { next?: string }) {
     </div>
   );
 }
-

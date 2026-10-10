@@ -1,5 +1,5 @@
-/* Kasi-Connect service worker — basic offline support for the PWA. */
-const VERSION = "kasi-connect-v1";
+/* KasiEco service worker — basic offline support for the PWA. */
+const VERSION = "kasieco-v2";
 const CORE_CACHE = `${VERSION}-core`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const ASSET_CACHE = `${VERSION}-assets`;

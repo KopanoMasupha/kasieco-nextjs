@@ -6,7 +6,14 @@ import { AiReport } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const { shopId } = (await req.json()) as { shopId: string };
+  let payload: { shopId?: string };
+  try {
+    payload = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  const shopId = payload.shopId;
+  if (!shopId) return NextResponse.json({ error: "shopId is required" }, { status: 400 });
   const db = readDB();
   const shop = db.shops.find((s) => s.id === shopId);
   if (!shop) return NextResponse.json({ error: "Shop not found" }, { status: 404 });
@@ -14,18 +21,18 @@ export async function POST(req: Request) {
   const insights = computeInsights(shopId, {
     shops: db.shops,
     goods: db.goods,
-    orders: db.orders,
+    sales: db.sales ?? [],
     listings: db.listings,
   });
 
-  let narrative = templateNarrative(shop, insights);
+  let narrative = templateNarrative(shop.name, insights);
   let narrativeSource: AiReport["narrativeSource"] = "template";
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (apiKey) {
     try {
       const prompt = `You are a friendly business assistant for a township (kasi) spaza shop owner in South Africa called ${shop.name}. Based on this stock data, write a warm, plain-language 2-3 sentence report highlighting what needs attention. Be specific and encouraging, not corporate. Data: ${JSON.stringify(
-        insights.map((i) => ({ item: i.name, stock: i.stockQty, recentSales: i.unitsSoldRecent, status: i.status, nearbyMatch: i.matchShopName || null }))
+        insights.map((i) => ({ item: i.name, stock: i.stockQty, recentSales: i.unitsSoldRecent, daysOfStockLeft: i.daysOfStockLeft, status: i.status, nearbyMatch: i.matchShopName || null }))
       )}`;
 
       const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -41,16 +48,20 @@ export async function POST(req: Request) {
           messages: [{ role: "user", content: prompt }],
         }),
       });
-      if (res.ok) {
+      if (!res.ok) {
+        console.error("Anthropic report request failed", res.status, await res.text());
+      } else {
         const data = await res.json();
-        const text = data?.content?.find((c: any) => c.type === "text")?.text;
+        const text = data?.content?.find((c: { type?: string; text?: string }) => c.type === "text")?.text;
         if (text) {
           narrative = text.trim();
           narrativeSource = "claude";
+        } else {
+          console.error("Anthropic report response contained no text");
         }
       }
     } catch {
-      // network/API failure — fall back to the template narrative computed above
+      console.error("Anthropic report request could not be completed");
     }
   }
 

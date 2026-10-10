@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Kasi-Connect — buy together, swap stock, get found",
-    short_name: "Kasi-Connect",
+    name: "KasiEco — buy together, swap stock, get found",
+    short_name: "KasiEco",
     description:
-      "Kasi-Connect (Mzansi Business digital platform): kasi shops that buy together, swap stock with each other, and get found by customers on a map.",
+      "KasiEco: township shops pool wholesale buying, exchange stock, and help customers find verified shops.",
     id: "/",
     start_url: "/",
     scope: "/",

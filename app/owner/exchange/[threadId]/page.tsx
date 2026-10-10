@@ -11,9 +11,10 @@ export default function ThreadPage({ params }: { params: { threadId: string } })
   const thread = state.threads.find((t) => t.id === params.threadId);
   const [text, setText] = useState("");
   const [showOffer, setShowOffer] = useState(false);
-  const [give, setGive] = useState("");
-  const [receive, setReceive] = useState("");
-  const [cash, setCash] = useState("0");
+  const [giveGoodId, setGiveGoodId] = useState("");
+  const [receiveGoodId, setReceiveGoodId] = useState("");
+  const [giveQty, setGiveQty] = useState(1);
+  const [receiveQty, setReceiveQty] = useState(1);
 
   if (!thread) return notFound();
 
@@ -22,6 +23,22 @@ export default function ThreadPage({ params }: { params: { threadId: string } })
   const me = state.shops.find((s) => s.id === state.myShopId);
   const isParticipant = me && (me.id === thread.shopAId || me.id === thread.shopBId);
   const other = isParticipant ? (me!.id === thread.shopAId ? shopB : shopA) : undefined;
+  const giveGoods = state.goods.filter((good) => good.shopId === me?.id && !good.hidden && good.stockQty > 0);
+  const receiveGoods = state.goods.filter((good) => good.shopId === other?.id && !good.hidden && good.stockQty > 0);
+  const selectedGive = giveGoods.find((good) => good.id === giveGoodId) ?? giveGoods[0];
+  const selectedReceive = receiveGoods.find((good) => good.id === receiveGoodId) ?? receiveGoods[0];
+  const shelfPrices = (goodId?: string) => {
+    const item = state.goods.find((good) => good.id === goodId);
+    if (!item) return 0;
+    const comparable = state.goods.filter((good) =>
+      !good.hidden && good.name.toLowerCase() === item.name.toLowerCase() &&
+      state.shops.some((shop) => shop.id === good.shopId && shop.verificationStatus === "verified")
+    );
+    return comparable.length ? comparable.reduce((sum, good) => sum + good.price, 0) / comparable.length : item.price;
+  };
+  const suggestedGiveValue = selectedGive ? shelfPrices(selectedGive.id) * giveQty : 0;
+  const suggestedReceiveValue = selectedReceive ? shelfPrices(selectedReceive.id) * receiveQty : 0;
+  const suggestedCash = Math.round(suggestedGiveValue - suggestedReceiveValue);
 
   function send() {
     if (!text.trim() || !me) return;
@@ -30,18 +47,19 @@ export default function ThreadPage({ params }: { params: { threadId: string } })
   }
 
   function sendOffer() {
-    if (!give.trim() || !receive.trim() || !me) return;
+    if (!selectedGive || !selectedReceive || !me) return;
     dispatch({
       type: "SEND_OFFER",
       threadId: thread!.id,
       fromShopId: me.id,
-      offerGive: give.trim(),
-      offerReceive: receive.trim(),
-      cashAdjustment: parseFloat(cash) || 0,
+      giveGoodId: selectedGive.id,
+      giveQty,
+      receiveGoodId: selectedReceive.id,
+      receiveQty,
+      offerGive: `${giveQty} × ${selectedGive.name}`,
+      offerReceive: `${receiveQty} × ${selectedReceive.name}`,
+      cashAdjustment: suggestedCash,
     });
-    setGive("");
-    setReceive("");
-    setCash("0");
     setShowOffer(false);
   }
 
@@ -98,8 +116,13 @@ export default function ThreadPage({ params }: { params: { threadId: string } })
                 <p className="mt-1 text-ink/75">
                   Gives <span className="font-medium">{o.offerGive}</span> for{" "}
                   <span className="font-medium">{o.offerReceive}</span>
-                  {o.cashAdjustment ? ` + R${o.cashAdjustment}` : ""}
+                  {o.cashAdjustment ? ` · ${o.cashAdjustment > 0 ? "receiver pays" : "sender pays"} R${Math.abs(o.cashAdjustment)}` : ""}
                 </p>
+                {typeof o.giveValueCents === "number" && typeof o.receiveValueCents === "number" && (
+                  <p className="mt-1 text-xs text-ink/50">
+                    Shelf value: R{(o.giveValueCents / 100).toFixed(2)} vs R{(o.receiveValueCents / 100).toFixed(2)} · {Math.abs(o.giveValueCents - o.receiveValueCents) / Math.max(o.giveValueCents, o.receiveValueCents, 1) <= 0.05 ? "Balanced" : o.giveValueCents > o.receiveValueCents ? `Sender gives R${((o.giveValueCents - o.receiveValueCents) / 100).toFixed(2)} more` : `Receiver gives R${((o.receiveValueCents - o.giveValueCents) / 100).toFixed(2)} more`}
+                  </p>
+                )}
                 <p className="mt-1 text-xs font-semibold capitalize text-ink/40">{o.status}</p>
                 {canRespond && (
                   <div className="mt-2 flex gap-2">
@@ -130,22 +153,26 @@ export default function ThreadPage({ params }: { params: { threadId: string } })
           <div className="mt-3 border-t border-ink/5 pt-3">
             {showOffer ? (
               <div className="space-y-2 rounded-xl2 border border-ink/10 p-3">
+                <p className="text-xs text-ink/50">Choose stock at each shop's actual shelf price. Similar items use the average verified-shop price.</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <input placeholder="You give" value={give} onChange={(e) => setGive(e.target.value)} className="input text-sm" />
-                  <input placeholder="You receive" value={receive} onChange={(e) => setReceive(e.target.value)} className="input text-sm" />
+                  <select aria-label="Goods you give" value={selectedGive?.id ?? ""} onChange={(event) => setGiveGoodId(event.target.value)} className="input text-sm">
+                    {giveGoods.map((good) => <option key={good.id} value={good.id}>{good.name} · R{good.price.toFixed(2)}</option>)}
+                  </select>
+                  <select aria-label="Goods you receive" value={selectedReceive?.id ?? ""} onChange={(event) => setReceiveGoodId(event.target.value)} className="input text-sm">
+                    {receiveGoods.map((good) => <option key={good.id} value={good.id}>{good.name} · R{good.price.toFixed(2)}</option>)}
+                  </select>
+                  <input aria-label="Quantity to give" type="number" min={1} max={selectedGive?.stockQty ?? 1} value={giveQty} onChange={(event) => setGiveQty(Math.max(1, Number(event.target.value)))} className="input text-sm" />
+                  <input aria-label="Quantity to receive" type="number" min={1} max={selectedReceive?.stockQty ?? 1} value={receiveQty} onChange={(event) => setReceiveQty(Math.max(1, Number(event.target.value)))} className="input text-sm" />
                 </div>
-                <input
-                  placeholder="Cash to add (0 for a straight swap)"
-                  type="number"
-                  value={cash}
-                  onChange={(e) => setCash(e.target.value)}
-                  className="input text-sm"
-                />
+                <p className="rounded-lg bg-sand-50 p-2.5 text-xs text-ink/65">
+                  Suggested cash top-up: {suggestedCash === 0 ? "R0.00" : suggestedCash > 0 ? `receiver adds R${suggestedCash.toFixed(2)}` : `sender adds R${Math.abs(suggestedCash).toFixed(2)}`}
+                  {" · "}{Math.abs(suggestedGiveValue - suggestedReceiveValue) / Math.max(suggestedGiveValue, suggestedReceiveValue, 1) <= 0.05 ? "Balanced (within 5%)" : "Not balanced yet"}
+                </p>
                 <div className="flex gap-2">
                   <button onClick={() => setShowOffer(false)} className="btn-outline flex-1 py-2 text-xs">
                     Cancel
                   </button>
-                  <button onClick={sendOffer} className="btn-ember flex-1 py-2 text-xs">
+                  <button disabled={!selectedGive || !selectedReceive} onClick={sendOffer} className="btn-ember flex-1 py-2 text-xs">
                     Send offer
                   </button>
                 </div>

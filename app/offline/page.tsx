@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "You're offline — Kasi-Connect",
+  title: "You're offline — KasiEco",
 };
 
 export default function OfflinePage() {
@@ -15,7 +15,7 @@ export default function OfflinePage() {
         You&apos;re offline
       </h1>
       <p className="text-sm text-ink/60">
-        Kasi-Connect can&apos;t reach the internet right now. Check your
+        KasiEco can&apos;t reach the internet right now. Check your
         connection and try again — pages you&apos;ve visited before are still
         available.
       </p>

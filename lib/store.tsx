@@ -22,6 +22,9 @@ import {
   Course,
   Role,
   SessionAccount,
+  FundingApplication,
+  FundingProfile,
+  FundingProgramme,
 } from "./types";
 import {
   SEED_SHOPS,
@@ -36,6 +39,7 @@ import {
   SEED_COURSES,
 } from "./seed";
 import { ServerAction } from "./server/actions";
+import { SEED_FUNDING_PROGRAMMES } from "./funding";
 
 const LOCAL_STORAGE_KEY = "mzansi-business-session-v2";
 
@@ -52,6 +56,9 @@ interface SharedState {
   verificationRequests: VerificationRequest[];
   certificates: Certificate[];
   courses: Course[];
+  fundingProgrammes: FundingProgramme[];
+  fundingProfiles: FundingProfile[];
+  fundingApplications: FundingApplication[];
 }
 
 const initialShared: SharedState = {
@@ -65,6 +72,9 @@ const initialShared: SharedState = {
   verificationRequests: SEED_VERIFICATION_REQUESTS,
   certificates: SEED_CERTIFICATES,
   courses: SEED_COURSES,
+  fundingProgrammes: SEED_FUNDING_PROGRAMMES,
+  fundingProfiles: [],
+  fundingApplications: [],
 };
 
 // ---- local (per-browser session) state ----
@@ -163,7 +173,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       refresh();
     }
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    const refreshTimer = window.setInterval(refresh, 3000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(refreshTimer);
+    };
   }, [refresh]);
 
   useEffect(() => {

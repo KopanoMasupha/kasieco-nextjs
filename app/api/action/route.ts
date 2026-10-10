@@ -13,6 +13,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  if (action?.type === "PLACE_ORDER" || action?.type === "SET_ORDER_STATUS") {
+    return NextResponse.json(
+      { error: "Customer orders are not available; KasiEco is a browse-only marketplace" },
+      { status: 410 }
+    );
+  }
+
   const db = readDB();
   const { db: nextDB, meta } = reduce(db, action);
   writeDB(nextDB);

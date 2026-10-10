@@ -10,7 +10,11 @@ import {
   OrderStatus,
   TrainingSession,
   ComplianceDocument,
+  FundingApplication,
+  FundingProfile,
+  FundingProgramme,
 } from "../types";
+import { PotPaymentMethod } from "../types";
 
 export type ServerAction =
   | { type: "REGISTER_SHOP"; shop: Shop; pin?: string }
@@ -18,6 +22,7 @@ export type ServerAction =
   | { type: "ADD_GOOD"; good: Good }
   | { type: "UPDATE_GOOD"; goodId: string; patch: Partial<Good> }
   | { type: "REMOVE_GOOD"; goodId: string }
+  | { type: "RECORD_SALE"; shopId: string; goodId: string; qty: number }
   | {
       type: "PLACE_ORDER";
       shopId: string;
@@ -29,8 +34,14 @@ export type ServerAction =
       consumerPhone: string;
     }
   | { type: "SET_ORDER_STATUS"; orderId: string; status: OrderStatus }
-  | { type: "JOIN_POOL"; poolId: string; shopId: string; shopName: string; township: string; qty: number }
-  | { type: "SET_POOL_STATUS"; poolId: string; status: Pool["status"] }
+  | { type: "CREATE_POOL"; shopId: string; productId: string }
+  | { type: "JOIN_POOL"; poolId: string; shopId: string; qty: number; method: PotPaymentMethod; expectedCents: number }
+  | { type: "CLOSE_POOL"; poolId: string; shopId: string }
+  | { type: "CANCEL_POOL"; poolId: string; shopId: string }
+  | { type: "COMPLETE_POOL_DELIVERY"; poolId: string; shopId: string }
+  | { type: "SAVE_FUNDING_PROFILE"; profile: FundingProfile }
+  | { type: "SET_FUNDING_APPLICATION"; application: FundingApplication }
+  | { type: "PUBLISH_FUNDING_PROGRAMME"; programme: FundingProgramme }
   | { type: "CREATE_LISTING"; listing: StockListing }
   | { type: "START_THREAD"; thread: ExchangeThread }
   | { type: "SEND_MESSAGE"; threadId: string; fromShopId: string; text: string }
@@ -38,6 +49,10 @@ export type ServerAction =
       type: "SEND_OFFER";
       threadId: string;
       fromShopId: string;
+      giveGoodId: string;
+      giveQty: number;
+      receiveGoodId: string;
+      receiveQty: number;
       offerGive: string;
       offerReceive: string;
       cashAdjustment: number;

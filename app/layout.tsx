@@ -5,14 +5,14 @@ import AppShell from "@/components/AppShell";
 import PWARegister from "@/components/PWARegister";
 
 export const metadata: Metadata = {
-  title: "Kasi-Connect — buy together, swap stock, get found",
+  title: "KasiEco — buy together, swap stock, get found",
   description:
-    "Kasi-Connect (Mzansi Business digital platform): kasi shops that buy together, swap stock with each other, and get found by customers on a map.",
-  applicationName: "Kasi-Connect",
+    "KasiEco (Mzansi Business digital platform): kasi shops that pool wholesale buying, exchange stock, and help customers find verified shops.",
+  applicationName: "KasiEco",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Kasi-Connect",
+    title: "KasiEco",
     statusBarStyle: "default",
   },
   icons: {

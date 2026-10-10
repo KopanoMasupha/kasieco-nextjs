@@ -19,6 +19,9 @@ body {
    navbar keeps working. */
 body {
   overflow-x: clip;
+  background-image: radial-gradient(ellipse at 10% 0%, rgba(232, 93, 43, 0.09), transparent 38%),
+    radial-gradient(ellipse at 90% 12%, rgba(65, 130, 88, 0.08), transparent 34%);
+  background-attachment: fixed;
 }
 
 /*
@@ -52,7 +55,50 @@ body {
 }
 
 .card {
-  @apply bg-white rounded-xl2 border border-sand-200/70;
+  @apply bg-white/75 rounded-xl2 border border-white/80;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 8px 30px rgba(23, 19, 16, 0.045);
+}
+
+.glass {
+  @apply bg-white/55 border border-white/70 rounded-xl2;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.glass-strong {
+  @apply bg-white/80 border border-white/90 rounded-xl2;
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+.glass-dark {
+  @apply bg-ink/75 border border-white/15 rounded-xl2 text-white;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.skeleton {
+  @apply rounded-lg bg-ink/5;
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .btn-pill {

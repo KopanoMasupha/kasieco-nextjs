@@ -4,6 +4,8 @@ import { uid } from "../id";
 import { hashPin, normalizePhone, toSessionAccount } from "./auth";
 import { DEMO_PIN_HASH } from "../seed";
 import { Account, ConsumerOrder } from "../types";
+import { auditPot, ledgerEntry, priceForQty, quoteForMembers, quoteJoin, totalPoolQty } from "../pot";
+import { WHOLESALE_CATALOGUE } from "../wholesalers";
 
 export interface ReduceResult {
   db: SharedDB;
@@ -46,7 +48,14 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
     }
 
     case "UPDATE_SHOP": {
-      const shops = db.shops.map((s) => (s.id === action.shopId ? { ...s, ...action.patch } : s));
+      const {
+        verified: _verified,
+        verificationStatus: _verificationStatus,
+        verificationMethod: _verificationMethod,
+        verifiedAt: _verifiedAt,
+        ...safePatch
+      } = action.patch;
+      const shops = db.shops.map((s) => (s.id === action.shopId ? { ...s, ...safePatch } : s));
       const shop = shops.find((s) => s.id === action.shopId);
       // keep the owner's sign-in account in step with their shop details
       const accounts = shop
@@ -71,6 +80,54 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
 
     case "REMOVE_GOOD":
       return { db: { ...db, goods: db.goods.filter((g) => g.id !== action.goodId) }, meta };
+
+    case "RECORD_SALE": {
+      const shop = db.shops.find((item) => item.id === action.shopId);
+      const good = db.goods.find((item) => item.id === action.goodId && item.shopId === action.shopId);
+      if (!shop || !isShopVerified(db, action.shopId)) return { db, meta: { error: "Only verified shops can record sales" } };
+      if (!good) return { db, meta: { error: "Stock item not found" } };
+      if (!Number.isInteger(action.qty) || action.qty < 1) return { db, meta: { error: "Enter a valid sale quantity" } };
+      if (good.stockQty < action.qty) return { db, meta: { error: "Sale quantity exceeds current stock" } };
+      const sale = { id: uid("sale"), shopId: shop.id, goodId: good.id, qty: action.qty, createdAt: new Date().toISOString() };
+      return {
+        db: {
+          ...db,
+          goods: db.goods.map((item) => item.id === good.id ? { ...item, stockQty: item.stockQty - action.qty } : item),
+          sales: [...(db.sales ?? []), sale],
+        },
+        meta,
+      };
+    }
+
+    case "SAVE_FUNDING_PROFILE": {
+      const profile = action.profile;
+      if (!db.shops.some((shop) => shop.id === profile.shopId)) return { db, meta: { error: "Shop not found" } };
+      if (![profile.age, profile.monthsTrading].every(Number.isFinite) || profile.age < 0 || profile.monthsTrading < 0) {
+        return { db, meta: { error: "Enter valid age and trading history" } };
+      }
+      const profiles = [...(db.fundingProfiles ?? []).filter((item) => item.shopId !== profile.shopId), profile];
+      return { db: { ...db, fundingProfiles: profiles }, meta };
+    }
+
+    case "SET_FUNDING_APPLICATION": {
+      if (!db.shops.some((shop) => shop.id === action.application.shopId)) return { db, meta: { error: "Shop not found" } };
+      if (!db.fundingProgrammes.some((programme) => programme.id === action.application.programmeId)) return { db, meta: { error: "Funding programme not found" } };
+      const existing = (db.fundingApplications ?? []).find((item) => item.shopId === action.application.shopId && item.programmeId === action.application.programmeId);
+      const application = { ...action.application, id: existing?.id ?? uid("funding-app"), updatedAt: new Date().toISOString() };
+      const applications = [
+        ...(db.fundingApplications ?? []).filter((item) => !(item.shopId === application.shopId && item.programmeId === application.programmeId)),
+        application,
+      ];
+      return { db: { ...db, fundingApplications: applications }, meta };
+    }
+
+    case "PUBLISH_FUNDING_PROGRAMME": {
+      const programme = action.programme;
+      if (!programme.name.trim() || !programme.provider.trim() || !/^https?:\/\//i.test(programme.officialUrl)) {
+        return { db, meta: { error: "Enter a programme, provider and valid official URL" } };
+      }
+      return { db: { ...db, fundingProgrammes: [...(db.fundingProgrammes ?? []), { ...programme, id: uid("funding") }] }, meta };
+    }
 
     case "PLACE_ORDER": {
       if (!isShopVerified(db, action.shopId)) {
@@ -119,41 +176,169 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
         meta,
       };
 
-    case "JOIN_POOL": {
+    case "CREATE_POOL": {
       if (!isShopVerified(db, action.shopId)) {
         return { db, meta: { error: "Shop is not verified yet" } };
       }
+      const product = WHOLESALE_CATALOGUE.find((item) => item.id === action.productId);
+      if (!product) return { db, meta: { error: "Choose a product from the wholesaler catalogue" } };
+      const pool = {
+        ...product,
+        id: uid("pool"),
+        supplierVerified: true,
+        commitments: [],
+        closesAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        status: "open" as const,
+        ownerShopId: null,
+        ledger: [],
+        balanceCents: 0,
+      };
+      meta.poolId = pool.id;
+      return { db: { ...db, pools: [pool, ...db.pools] }, meta };
+    }
+
+    case "JOIN_POOL": {
+      const shop = db.shops.find((item) => item.id === action.shopId);
+      if (!shop || !isShopVerified(db, action.shopId)) {
+        return { db, meta: { error: "Only verified shops can pay into a pot" } };
+      }
+      const pool = db.pools.find((item) => item.id === action.poolId);
+      if (!pool) return { db, meta: { error: "Pot not found" } };
+      if (pool.status !== "open") return { db, meta: { error: "This pot is no longer open for payments" } };
+      if (!Number.isInteger(action.qty) || action.qty < 1 || action.qty > 1000) {
+        return { db, meta: { error: "Enter a valid number of units" } };
+      }
+      if (!["instant-eft", "bank-card", "wallet"].includes(action.method)) {
+        return { db, meta: { error: "Choose a supported sandbox payment method" } };
+      }
+      if (pool.commitments.some((member) => member.shopId === shop.id)) {
+        return { db, meta: { error: "This shop has already paid into the pot" } };
+      }
+      const member = {
+        shopId: shop.id,
+        shopName: shop.name,
+        township: shop.township,
+        qty: action.qty,
+        paid: true,
+        paidCents: 0,
+        joinedAt: new Date().toISOString(),
+      };
+      const quote = quoteJoin(pool, member);
+      if (action.expectedCents !== quote.paymentCents) {
+        return { db, meta: { error: "The price changed while you were paying", quoteCents: quote.paymentCents } };
+      }
+      const contribution = ledgerEntry(pool, {
+        id: uid("entry"),
+        type: "contribution",
+        shopId: shop.id,
+        amountCents: quote.paymentCents,
+        reference: uid("KE").toUpperCase(),
+        method: action.method,
+      });
+      member.paidCents = quote.paymentCents;
+      const updatedPool = {
+        ...pool,
+        commitments: [...pool.commitments, member],
+        ledger: [...(pool.ledger ?? []), contribution],
+        balanceCents: contribution.balanceCents,
+        ownerShopId: pool.ownerShopId ?? shop.id,
+      };
       return {
-        db: {
-          ...db,
-          pools: db.pools.map((p) =>
-            p.id === action.poolId
-              ? {
-                  ...p,
-                  commitments: [
-                    ...p.commitments,
-                    {
-                      shopId: action.shopId,
-                      shopName: action.shopName,
-                      township: action.township,
-                      qty: action.qty,
-                      paid: true,
-                      joinedAt: new Date().toISOString(),
-                    },
-                  ],
-                }
-              : p
-          ),
-        },
-        meta,
+        db: { ...db, pools: db.pools.map((item) => item.id === pool.id ? updatedPool : item) },
+        meta: { paymentCents: quote.paymentCents, reference: contribution.reference },
       };
     }
 
-    case "SET_POOL_STATUS":
+    case "CLOSE_POOL": {
+      const pool = db.pools.find((item) => item.id === action.poolId);
+      if (!pool) return { db, meta: { error: "Pot not found" } };
+      if (pool.ownerShopId !== action.shopId) return { db, meta: { error: "Only the shop that opened this pot can close it" } };
+      if (pool.status !== "open") return { db, meta: { error: "This pot is not open" } };
+      if (totalPoolQty(pool) < pool.minQty) return { db, meta: { error: "The minimum order has not been reached" } };
+      const shares = quoteForMembers(pool, pool.commitments);
+      const entries = [...(pool.ledger ?? [])];
+      let settledPool = pool;
+      const append = (entry: Parameters<typeof ledgerEntry>[1]) => {
+        const next = ledgerEntry(settledPool, entry);
+        entries.push(next);
+        settledPool = { ...settledPool, ledger: entries, balanceCents: next.balanceCents };
+      };
+      for (const share of shares) {
+        const member = pool.commitments.find((item) => item.shopId === share.shopId)!;
+        const credit = (member.paidCents ?? 0) - share.totalCents;
+        if (credit < 0) return { db, meta: { error: `${member.shopName} still owes money; the pot cannot close` } };
+        if (credit > 0) append({
+          id: uid("entry"),
+          type: "rebate",
+          shopId: member.shopId,
+          amountCents: -credit,
+          reference: uid("KE").toUpperCase(),
+        });
+      }
+      const finalUnitPrice = priceForQty(pool, totalPoolQty(pool));
+      append({
+        id: uid("entry"),
+        type: "wholesaler",
+        amountCents: -totalPoolQty(pool) * finalUnitPrice,
+        reference: uid("KE").toUpperCase(),
+      });
+      append({
+        id: uid("entry"),
+        type: "driver",
+        amountCents: -(pool.deliveryCents ?? 0),
+        reference: uid("KE").toUpperCase(),
+      });
+      append({
+        id: uid("entry"),
+        type: "service-fee",
+        amountCents: -shares.reduce((sum, share) => sum + share.feeCents, 0),
+        reference: uid("KE").toUpperCase(),
+      });
+      if (settledPool.balanceCents !== 0) return { db, meta: { error: "Pot settlement did not balance to zero" } };
+      settledPool = { ...settledPool, status: "delivering" };
+      const audit = auditPot(settledPool);
+      if (!audit.valid) return { db, meta: { error: `Pot audit failed: ${audit.errors.join("; ")}` } };
+      return { db: { ...db, pools: db.pools.map((item) => item.id === pool.id ? settledPool : item) }, meta };
+    }
+
+    case "CANCEL_POOL": {
+      const pool = db.pools.find((item) => item.id === action.poolId);
+      if (!pool) return { db, meta: { error: "Pot not found" } };
+      if (pool.ownerShopId !== action.shopId) return { db, meta: { error: "Only the shop that opened this pot can cancel it" } };
+      if (pool.status !== "open") return { db, meta: { error: "This pot is not open" } };
+      if (totalPoolQty(pool) >= pool.minQty) return { db, meta: { error: "The minimum has been reached; this pot can no longer be cancelled" } };
+      const entries = [...(pool.ledger ?? [])];
+      let settledPool = pool;
+      for (const member of pool.commitments) {
+        const refund = member.paidCents ?? 0;
+        if (refund === 0) continue;
+        const entry = ledgerEntry(settledPool, {
+          id: uid("entry"),
+          type: "refund",
+          shopId: member.shopId,
+          amountCents: -refund,
+          reference: uid("KE").toUpperCase(),
+        });
+        entries.push(entry);
+        settledPool = { ...settledPool, ledger: entries, balanceCents: entry.balanceCents };
+      }
+      if (settledPool.balanceCents !== 0) return { db, meta: { error: "Refunds did not balance to zero" } };
+      settledPool = { ...settledPool, status: "closed" };
+      const audit = auditPot(settledPool);
+      if (!audit.valid) return { db, meta: { error: `Pot audit failed: ${audit.errors.join("; ")}` } };
+      return { db: { ...db, pools: db.pools.map((item) => item.id === pool.id ? settledPool : item) }, meta };
+    }
+
+    case "COMPLETE_POOL_DELIVERY": {
+      const pool = db.pools.find((item) => item.id === action.poolId);
+      if (!pool) return { db, meta: { error: "Pot not found" } };
+      if (pool.ownerShopId !== action.shopId) return { db, meta: { error: "Only the shop that opened this pot can confirm delivery" } };
+      if (pool.status !== "delivering") return { db, meta: { error: "This pot is not awaiting delivery" } };
       return {
-        db: { ...db, pools: db.pools.map((p) => (p.id === action.poolId ? { ...p, status: action.status } : p)) },
+        db: { ...db, pools: db.pools.map((item) => item.id === pool.id ? { ...item, status: "delivered" } : item) },
         meta,
       };
+    }
 
     case "CREATE_LISTING": {
       if (!isShopVerified(db, action.listing.shopId)) {
@@ -188,7 +373,25 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
         meta,
       };
 
-    case "SEND_OFFER":
+    case "SEND_OFFER": {
+      const thread = db.threads.find((item) => item.id === action.threadId);
+      const giver = db.shops.find((item) => item.id === action.fromShopId);
+      const receiverId = thread && (thread.shopAId === action.fromShopId ? thread.shopBId : thread.shopAId);
+      const receiver = receiverId && db.shops.find((item) => item.id === receiverId);
+      const giveGood = db.goods.find((item) => item.id === action.giveGoodId && item.shopId === action.fromShopId);
+      const receiveGood = db.goods.find((item) => item.id === action.receiveGoodId && item.shopId === receiverId);
+      if (!thread || thread.status !== "open" || !giver || !receiver) return { db, meta: { error: "Exchange conversation is unavailable" } };
+      if (!isShopVerified(db, giver.id) || !isShopVerified(db, receiver.id)) return { db, meta: { error: "Both shops must be verified to make an offer" } };
+      if (!giveGood || !receiveGood) return { db, meta: { error: "Choose goods listed in this exchange" } };
+      if (!Number.isInteger(action.giveQty) || !Number.isInteger(action.receiveQty) ||
+          action.giveQty < 1 || action.receiveQty < 1 ||
+          giveGood.stockQty < action.giveQty || receiveGood.stockQty < action.receiveQty) {
+        return { db, meta: { error: "Offer quantities exceed available stock" } };
+      }
+      const giveValueCents = Math.round(giveGood.price * 100) * action.giveQty;
+      const receiveValueCents = Math.round(receiveGood.price * 100) * action.receiveQty;
+      const difference = giveValueCents - receiveValueCents;
+      const cashAdjustment = Math.round(difference / 100);
       return {
         db: {
           ...db,
@@ -197,13 +400,15 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
               ? {
                   ...t,
                   offers: [
-                    ...t.offers,
+                    ...t.offers.map((offer) => offer.status === "pending" ? { ...offer, status: "declined" as const } : offer),
                     {
                       id: uid("offer"),
                       fromShopId: action.fromShopId,
-                      offerGive: action.offerGive,
-                      offerReceive: action.offerReceive,
-                      cashAdjustment: action.cashAdjustment,
+                      offerGive: `${action.giveQty} × ${giveGood.name}`,
+                      offerReceive: `${action.receiveQty} × ${receiveGood.name}`,
+                      cashAdjustment,
+                      giveValueCents,
+                      receiveValueCents,
                       status: "pending",
                       createdAt: new Date().toISOString(),
                     },
@@ -212,8 +417,9 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
               : t
           ),
         },
-        meta,
+        meta: { giveValueCents, receiveValueCents, cashAdjustment },
       };
+    }
 
     case "RESPOND_OFFER":
       return {
