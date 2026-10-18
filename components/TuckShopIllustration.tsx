@@ -74,8 +74,8 @@ export default function TuckShopIllustration({ className }: { className?: string
 
         {/* shop sign */}
         <rect x="130" y="160" width="170" height="34" rx="6" fill="#171310" />
-        <text x="215" y="182" textAnchor="middle" fontFamily="ui-sans-serif, system-ui" fontSize="14" fontWeight="700" fill="#FBF7F1">
-          Kasi-Connect
+        <text x="215" y="182" textAnchor="middle" fontFamily="ui-sans-serif, system-ui" fontSize="15" fontWeight="700" fill="#FBF7F1">
+          MzansiConnect
         </text>
       </motion.g>
 

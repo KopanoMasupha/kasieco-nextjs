@@ -4,5 +4,5 @@ out
 .env
 .env*.local
 npm-debug.log*
-data/*
-!data/db.json
+data/
+prototype/dist/

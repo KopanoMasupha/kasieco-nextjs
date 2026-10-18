@@ -1,89 +1,63 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import NavBar from "./NavBar";
-import Container from "./Container";
-import { useStore } from "@/lib/store";
-import { isVerificationOnHold } from "@/lib/verificationProcess";
+import HelpBot from "./HelpBot";
+import { PageSkeleton } from "./Skeleton";
+import SalesPop from "./shop/SalesPop";
+import { useStore, useMe } from "@/lib/store";
+import SignIn, { HOME_FOR } from "./SignIn";
+import { UserRole } from "@/lib/types";
 
-/** /owner pages that stay open to signed-out visitors (the sign-up flow). */
-const PUBLIC_OWNER_PATHS = ["/owner/register"];
-
-/** /owner pages an UNVERIFIED owner may still use while their shop is locked. */
-const UNVERIFIED_ALLOWED_PATHS = [
-  "/owner/register",
-  "/owner/verify-status",
-  "/owner/compliance",
-  "/owner/learn",
-  "/owner/training",
+const AREA: { prefix: string; role: UserRole; name: string }[] = [
+  { prefix: "/owner", role: "owner", name: "shop owners" },
+  { prefix: "/admin", role: "admin", name: "MzansiConnect admins" },
+  { prefix: "/driver", role: "driver", name: "drivers" },
+  { prefix: "/verify", role: "verifier", name: "government verifiers" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { state } = useStore();
-
+  const { loading, dispatch } = useStore();
+  const me = useMe();
   const isLanding = pathname === "/";
-  const isOwnerArea =
-    pathname.startsWith("/owner") && !PUBLIC_OWNER_PATHS.includes(pathname);
-  // Signed-out visitors are sent to /signin and returned to this path afterwards.
-  const needsSignIn = isOwnerArea && state.account?.role !== "owner";
+  const area = pathname === "/owner/register" ? undefined : AREA.find((a) => pathname.startsWith(a.prefix));
 
-  // Verification gate: until the shop is verified (and any in-flight CIPC /
-  // B-BBEE / Tshwane checks have finished), trading pages are locked and the
-  // owner is held on the verification flow.
-  const myShop = state.shops.find((s) => s.id === state.myShopId);
-  const verificationHold =
-    !!myShop &&
-    (myShop.verificationStatus !== "verified" || isVerificationOnHold(myShop.id, myShop));
-  const ownerUnverified =
-    isOwnerArea &&
-    !needsSignIn &&
-    verificationHold &&
-    !UNVERIFIED_ALLOWED_PATHS.some(
-      (p) => pathname === p || pathname.startsWith(`${p}/`)
+  let body: React.ReactNode = children;
+  if (loading) body = <PageSkeleton />;
+  else if (area && !me) body = <SignIn redirect={false} title={`Sign in to continue`} />;
+  else if (area && me && me.role !== area.role)
+    body = (
+      <div className="glass-strong mx-auto max-w-md p-6 text-center">
+        <h1 className="text-lg font-bold text-ink">This page is for {area.name}</h1>
+        <p className="mt-1 text-sm text-ink/55">You're signed in as {me.name}.</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Link href={HOME_FOR[me.role]} className="btn-dark px-4 py-2.5 text-sm">
+            Go to my home page
+          </Link>
+          <button onClick={() => dispatch({ type: "SIGN_OUT" })} className="btn-outline px-4 py-2.5 text-sm">
+            Sign out
+          </button>
+        </div>
+      </div>
     );
-
-  useEffect(() => {
-    if (!needsSignIn || !state.hydrated) return;
-    router.replace(`/signin?next=${encodeURIComponent(pathname)}`);
-  }, [needsSignIn, state.hydrated, pathname, router]);
-
-  useEffect(() => {
-    if (!ownerUnverified || !state.hydrated) return;
-    router.replace("/owner/verify-status");
-  }, [ownerUnverified, state.hydrated, pathname, router]);
-
-  if (isLanding) {
-    return <>{children}</>;
-  }
 
   return (
     <>
-      <NavBar />
-      {/* same layout pattern as the navbar: gutter on the full-width parent,
-          Container inside — so content edges align with the navbar card on
-          phones, tablets and desktop alike */}
-      <main className="app-gutter pb-16 pt-4">
-        <Container>
-          {needsSignIn || ownerUnverified ? (
-            <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-20 text-center">
-              <Loader2 size={22} className="animate-spin text-ink/30" />
-              <p className="text-sm text-ink/50">
-                {needsSignIn
-                  ? state.hydrated
-                    ? "Taking you to the sign-in page…"
-                    : "Checking your session…"
-                  : "Verification needed — taking you to your verification status…"}
-              </p>
-            </div>
-          ) : (
-            children
-          )}
-        </Container>
-      </main>
+      <div className="app-backdrop" aria-hidden />
+      {isLanding ? (
+        children
+      ) : (
+        <>
+          <NavBar />
+          <div className={me ? "lg:pl-60" : ""}>
+            <main className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-10 lg:pt-8">{body}</main>
+          </div>
+        </>
+      )}
+      <HelpBot />
+      {me?.role === "owner" && !isLanding && <SalesPop />}
     </>
   );
 }

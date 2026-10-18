@@ -1,5 +1,5 @@
-/* Kasi-Connect service worker — basic offline support for the PWA. */
-const VERSION = "kasi-connect-v1";
+/* Kasi Connect service worker — basic offline support for the PWA. */
+const VERSION = "kasi-connect-v3";
 const CORE_CACHE = `${VERSION}-core`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const ASSET_CACHE = `${VERSION}-assets`;
@@ -7,6 +7,7 @@ const ASSET_CACHE = `${VERSION}-assets`;
 /** Precached at install: the offline fallback page and the app icons. */
 const CORE_ASSETS = [
   "/offline",
+  "/kasi-connect-logo.jpeg",
   "/icons/logo.png",
   "/icons/logo-192.png",
   "/icons/logo-maskable-512.png",

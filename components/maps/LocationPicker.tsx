@@ -90,7 +90,7 @@ export default function LocationPicker({
         <Crosshair size={14} className="text-ember" />
         Use my location
       </button>
-      <div className="absolute left-3 top-3 z-[400] rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-medium text-ink/60 shadow-sm">
+      <div className="absolute left-3 top-3 z-[400] rounded-full bg-white px-3 py-1.5 text-[11px] font-medium text-ink/60 shadow-sm">
         Click the map or drag the pin
       </div>
     </div>

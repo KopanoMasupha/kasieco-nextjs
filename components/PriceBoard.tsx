@@ -3,6 +3,7 @@
 import { Pool } from "@/lib/types";
 import { currentTier, nextTier, totalQty, unitsToNextTier, formatRand } from "@/lib/pricing";
 import { TrendingDown } from "lucide-react";
+import { units } from "@/lib/units";
 
 export default function PriceBoard({ pool, compact }: { pool: Pool; compact?: boolean }) {
   const qty = totalQty(pool);
@@ -16,18 +17,16 @@ export default function PriceBoard({ pool, compact }: { pool: Pool; compact?: bo
     <div>
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-ink/40">
-            Price right now
-          </p>
-          <p className="text-3xl font-extrabold text-ink">
+          <p className="eyebrow">Price now</p>
+          <p className="num font-display text-4xl font-bold text-ink">
             {formatRand(cur.price)}
-            <span className="ml-1 text-sm font-medium text-ink/40">/ {pool.unitLabel}</span>
+            <span className="ml-1 text-sm font-medium text-ink/40">/ {pool.unitLabel.split(" (")[0]}</span>
           </p>
         </div>
         {saved > 0 && (
           <span className="mb-1 flex items-center gap-1 rounded-full bg-leaf/10 px-2.5 py-1 text-xs font-semibold text-leaf">
             <TrendingDown size={13} />
-            {formatRand(saved)} down from {formatRand(base)}
+            −{formatRand(saved)}
           </span>
         )}
       </div>
@@ -46,7 +45,7 @@ export default function PriceBoard({ pool, compact }: { pool: Pool; compact?: bo
                 <p className={`text-[13px] font-bold ${active ? "text-ember-dark" : "text-ink/70"}`}>
                   {formatRand(t.price)}
                 </p>
-                <p className="text-[10px] text-ink/40">{t.minQty}+ {pool.unitLabel}s</p>
+                <p className="text-[10px] text-ink/40">{t.minQty}+</p>
               </div>
             );
           })}
@@ -55,13 +54,13 @@ export default function PriceBoard({ pool, compact }: { pool: Pool; compact?: bo
 
       <div className="mt-4">
         <div className="flex items-center justify-between text-xs text-ink/50">
-          <span>{qty} {pool.unitLabel}s pooled</span>
+          <span>{qty} pooled</span>
           {nxt ? (
             <span>
               {unitsToNextTier(pool)} more to {formatRand(nxt.price)}
             </span>
           ) : (
-            <span>Lowest price unlocked</span>
+            <span>Lowest price</span>
           )}
         </div>
         <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-sand-100">

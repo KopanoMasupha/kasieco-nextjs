@@ -1,18 +1,9 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useReducer,
-  useState,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useEffect, useMemo, useReducer, useState, useCallback, useRef } from "react";
 import {
   Shop,
   Good,
-  ConsumerOrder,
   Pool,
   StockListing,
   ExchangeThread,
@@ -21,30 +12,34 @@ import {
   Certificate,
   Course,
   Role,
-  SessionAccount,
-} from "./types";
-import {
-  SEED_SHOPS,
-  SEED_GOODS,
-  SEED_POOLS,
-  SEED_LISTINGS,
-  SEED_THREADS,
-  SEED_ORDERS,
-  SEED_TRAINING_SESSIONS,
-  SEED_VERIFICATION_REQUESTS,
-  SEED_CERTIFICATES,
-  SEED_COURSES,
-} from "./seed";
+  Wholesaler,
+  Driver,
+  UserAccount,
+  PaymentTx,
+  Fee,
+  Trip,
+  Message,
+  FundingOpportunity,
+  FundingInterest,
+  FundingProfile,
+ Approval } from "./types";
 import { ServerAction } from "./server/actions";
 
-const LOCAL_STORAGE_KEY = "mzansi-business-session-v2";
+const LOCAL_STORAGE_KEY = "kasieco-session-v6";
 
-// ---- shared (server) state ----
+// ---- shared (server) state — empty until the first /api/state response ----
 
 interface SharedState {
+  users: UserAccount[];
+  wholesalers: Wholesaler[];
+  drivers: Driver[];
+  payments: PaymentTx[];
+  fees: Fee[];
+  trips: Trip[];
+  messages: Message[];
+  approvals: Approval[];
   shops: Shop[];
   goods: Good[];
-  orders: ConsumerOrder[];
   pools: Pool[];
   listings: StockListing[];
   threads: ExchangeThread[];
@@ -52,91 +47,93 @@ interface SharedState {
   verificationRequests: VerificationRequest[];
   certificates: Certificate[];
   courses: Course[];
+  funding: FundingOpportunity[];
+  fundingInterests: FundingInterest[];
+  fundingProfiles: FundingProfile[];
 }
 
-const initialShared: SharedState = {
-  shops: SEED_SHOPS,
-  goods: SEED_GOODS,
-  orders: SEED_ORDERS,
-  pools: SEED_POOLS,
-  listings: SEED_LISTINGS,
-  threads: SEED_THREADS,
-  trainingSessions: SEED_TRAINING_SESSIONS,
-  verificationRequests: SEED_VERIFICATION_REQUESTS,
-  certificates: SEED_CERTIFICATES,
-  courses: SEED_COURSES,
+const emptyShared: SharedState = {
+  users: [],
+  wholesalers: [],
+  drivers: [],
+  payments: [],
+  fees: [],
+  trips: [],
+  messages: [],
+  approvals: [],
+  shops: [],
+  goods: [],
+  pools: [],
+  listings: [],
+  threads: [],
+  trainingSessions: [],
+  verificationRequests: [],
+  certificates: [],
+  courses: [],
+  funding: [],
+  fundingInterests: [],
+  fundingProfiles: [],
 };
 
-// ---- local (per-browser session) state ----
+// ---- local (per-browser) state ----
 
 interface LocalState {
-  /** The signed-in account, or null when browsing as a guest. */
-  account: SessionAccount | null;
   role: Role;
-  myShopId: string;
-  verifierUnlocked: boolean;
+  userId: string; // "" when signed out
+  myShopId: string; // set when an owner is signed in
+  myDriverId: string; // set when a driver is signed in
   hydrated: boolean;
 }
 
 const initialLocal: LocalState = {
-  account: null,
   role: "consumer",
-  myShopId: "shop-thandi",
-  verifierUnlocked: false,
+  userId: "",
+  myShopId: "",
+  myDriverId: "",
   hydrated: false,
 };
 
 type LocalAction =
   | { type: "HYDRATE"; payload: Partial<LocalState> }
-  | { type: "SIGN_IN"; account: SessionAccount }
-  | { type: "SIGN_OUT" }
   | { type: "SET_ROLE"; role: Role }
   | { type: "SET_MY_SHOP"; shopId: string }
-  | { type: "UNLOCK_VERIFIER" };
+  | { type: "SIGNED_IN"; userId: string; role: Role; shopId?: string; driverId?: string }
+  | { type: "SIGN_OUT" };
 
 function localReducer(state: LocalState, action: LocalAction): LocalState {
   switch (action.type) {
     case "HYDRATE":
       return { ...state, ...action.payload, hydrated: true };
-    case "SIGN_IN":
-      // only shop owners can sign in, and signing in switches to the owner view
-      return {
-        ...state,
-        account: action.account,
-        role: "owner",
-        myShopId: action.account.shopId ?? state.myShopId,
-      };
-    case "SIGN_OUT":
-      return { ...state, account: null, role: "consumer" };
     case "SET_ROLE":
       return { ...state, role: action.role };
     case "SET_MY_SHOP":
       return { ...state, myShopId: action.shopId };
-    case "UNLOCK_VERIFIER":
-      return { ...state, verifierUnlocked: true };
+    case "SIGNED_IN":
+      return { ...state, userId: action.userId, role: action.role, myShopId: action.shopId || "", myDriverId: action.driverId || "" };
+    case "SIGN_OUT":
+      return { ...state, userId: "", myShopId: "", myDriverId: "", role: "consumer" };
     default:
       return state;
   }
 }
 
-// ---- combined public API (kept close to the old shape so pages barely change) ----
-
 type CombinedState = SharedState & LocalState;
-type DispatchAction = ServerAction | LocalAction;
+type DispatchAction = ServerAction | Exclude<LocalAction, { type: "HYDRATE" }>;
 
-const LOCAL_TYPES = new Set(["SIGN_IN", "SIGN_OUT", "SET_ROLE", "SET_MY_SHOP", "UNLOCK_VERIFIER"]);
+const LOCAL_TYPES = new Set(["SET_ROLE", "SET_MY_SHOP", "SIGN_OUT"]);
 
 interface StoreContextValue {
   state: CombinedState;
   dispatch: (action: DispatchAction) => Promise<{ error?: string; [k: string]: any }>;
   loading: boolean;
+  refresh: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextValue | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [local, localDispatch] = useReducer(localReducer, initialLocal);
-  const [shared, setShared] = useState<SharedState>(initialShared);
+  const [shared, setShared] = useState<SharedState>(emptyShared);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -144,7 +141,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch("/api/state", { cache: "no-store" });
       if (res.ok) setShared(await res.json());
     } catch {
-      // API not reachable (e.g. static export) — keep serving the seed data
+      // offline — keep what we have
     } finally {
       setLoading(false);
     }
@@ -158,10 +155,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       localDispatch({ type: "HYDRATE", payload: {} });
     }
     refresh();
-
-    function onFocus() {
-      refresh();
-    }
+    const onFocus = () => refresh();
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refresh]);
@@ -171,48 +165,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(local));
     } catch {
-      // ignore quota errors
+      // storage blocked — the session simply won't be remembered
     }
   }, [local]);
-
-  // Keep the signed-in shop valid locally: if a saved browser session points at a
-  // shop that no longer exists (for example after the local database is reset),
-  // fall back to a real shop so "I own a shop" always opens a working dashboard.
-  useEffect(() => {
-    if (!local.hydrated || loading) return;
-    if (shared.shops.some((s) => s.id === local.myShopId)) return;
-    const fallback =
-      shared.shops.find((s) => s.verificationStatus === "verified") ?? shared.shops[0];
-    if (fallback) localDispatch({ type: "SET_MY_SHOP", shopId: fallback.id });
-  }, [local.hydrated, local.myShopId, loading, shared.shops]);
 
   const dispatch = useCallback(async (action: DispatchAction) => {
     if (LOCAL_TYPES.has(action.type)) {
       localDispatch(action as LocalAction);
       return {};
     }
-
-    const res = await fetch("/api/action", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(action),
-    });
-    const { state: nextState, meta } = await res.json();
-    if (nextState) setShared(nextState);
-
-    if (!meta?.error) {
-      if (action.type === "REGISTER_SHOP") {
-        // register + sign in with the PIN chosen on the form
-        if (meta?.account) localDispatch({ type: "SIGN_IN", account: meta.account });
-        else localDispatch({ type: "SET_MY_SHOP", shopId: action.shop.id });
+    try {
+      const res = await fetch("/api/action", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(action),
+      });
+      const { state: nextState, meta } = await res.json();
+      if (nextState) setShared(nextState);
+      if (!meta?.error && (action.type === "REGISTER_SHOP" || action.type === "SIGN_IN") && meta?.userId) {
+        localDispatch({ type: "SIGNED_IN", userId: meta.userId, role: meta.role, shopId: meta.shopId, driverId: meta.driverId });
       }
+      return meta || {};
+    } catch {
+      return { error: "Couldn't reach the server — check your connection and try again." };
     }
-    return meta || {};
   }, []);
 
   const state: CombinedState = useMemo(() => ({ ...shared, ...local }), [shared, local]);
-
-  const value = useMemo(() => ({ state, dispatch, loading }), [state, dispatch, loading]);
+  const value = useMemo(() => ({ state, dispatch, loading, refresh }), [state, dispatch, loading, refresh]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
@@ -223,12 +203,40 @@ export function useStore() {
   return ctx;
 }
 
-export function useShop(shopId: string | undefined) {
-  const { state } = useStore();
-  return state.shops.find((s) => s.id === shopId);
+/** Re-fetch shared state every `ms` while the component is mounted (live pot feed). */
+export function useLiveRefresh(ms = 3000) {
+  const { refresh } = useStore();
+  const ref = useRef(refresh);
+  ref.current = refresh;
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") ref.current();
+    }, ms);
+    return () => clearInterval(id);
+  }, [ms]);
 }
 
-export function useGoodsForShop(shopId: string | undefined) {
+export function useMyShop() {
   const { state } = useStore();
-  return state.goods.filter((g) => g.shopId === shopId);
+  return state.shops.find((s) => s.id === state.myShopId);
+}
+
+export function useMe() {
+  const { state } = useStore();
+  return state.users.find((u) => u.id === state.userId);
+}
+
+export function useMyDriver() {
+  const { state } = useStore();
+  return state.drivers.find((d) => d.id === state.myDriverId);
+}
+
+/** Inbox for whoever is signed in. */
+export function useInbox() {
+  const { state } = useStore();
+  const me = state.users.find((u) => u.id === state.userId);
+  if (!me) return { list: [] as Message[], unread: 0, toRole: undefined, toId: undefined };
+  const toId = me.role === "owner" ? me.shopId! : me.role === "driver" ? me.driverId! : me.role === "admin" ? "admin" : "verifier";
+  const list = state.messages.filter((m) => m.toRole === me.role && m.toId === toId).slice().reverse();
+  return { list, unread: list.filter((m) => !m.read).length, toRole: me.role, toId };
 }

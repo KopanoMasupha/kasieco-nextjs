@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readDB, writeDB } from "@/lib/server/db";
+import "@/lib/server/seedDb"; // registers the demo seed
+import { readDB, writeDB, publicState, resetDB } from "@/lib/server/db";
 import { reduce } from "@/lib/server/reducer";
 import { ServerAction } from "@/lib/server/actions";
 
@@ -13,11 +14,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  if (action.type === "RESET_DEMO") return NextResponse.json({ state: publicState(resetDB()), meta: {} });
   const db = readDB();
   const { db: nextDB, meta } = reduce(db, action);
   writeDB(nextDB);
 
-  // never ship account records (PIN hashes) back to the browser
-  const { accounts, ...publicState } = nextDB;
-  return NextResponse.json({ state: publicState, meta });
+  return NextResponse.json({ state: publicState(nextDB), meta });
 }
