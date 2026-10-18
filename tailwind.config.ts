@@ -7,7 +7,7 @@ const config: Config = {
       colors: {
         sand: {
           50: "#FBF7F1",
-          100: "#F4EBDD",
+          100: "#F1ECE4",
           200: "#EAE0CE",
           300: "#DCCBAE",
         },
@@ -23,8 +23,8 @@ const config: Config = {
         display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        xl2: "1.25rem",
-        xl3: "1.75rem",
+        xl2: "1rem",
+        xl3: "1.5rem",
       },
     },
   },

@@ -1,36 +1,47 @@
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { Shop } from "./types";
 
-export interface OpenStatus {
-  isOpen: boolean | null;
-  label: string;
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function minutes(hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + (m || 0);
 }
 
-export function getOpenStatus(hours: string, now = new Date()): OpenStatus {
-  const match = hours.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  if (!match) return { isOpen: null, label: "Hours not available" };
-  const [, opens, closes] = match;
-  const range = hours.match(/(every day|daily|mon\s*-\s*sat|mon\s*-\s*fri)/i)?.[0].toLowerCase();
-  if (!range) return { isOpen: null, label: "Hours not available" };
-  const activeDays = range === "every day" || range === "daily"
-    ? DAYS
-    : range.includes("sat")
-      ? DAYS.slice(1, 7)
-      : DAYS.slice(1, 6);
-  const parts = new Intl.DateTimeFormat("en-ZA", {
+/** Uses South African time regardless of where the viewer's device is set. */
+function nowInSA() {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Africa/Johannesburg",
     weekday: "short",
     hour: "2-digit",
     minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(now);
-  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
-  const day = part("weekday");
-  const time = `${part("hour")}:${part("minute")}`;
-  const isOvernight = closes <= opens;
-  const yesterday = DAYS[(DAYS.indexOf(day) + DAYS.length - 1) % DAYS.length];
-  const todayOpen = activeDays.includes(day) &&
-    (isOvernight ? time >= opens : time >= opens && time < closes);
-  const overnightCarry = isOvernight && activeDays.includes(yesterday) && time < closes;
-  const isOpen = todayOpen || overnightCarry;
-  return { isOpen, label: isOpen ? "Open now" : "Closed now" };
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return { day: DAY_NAMES.indexOf(get("weekday")), mins: Number(get("hour")) * 60 + Number(get("minute")) };
+}
+
+export function isOpenNow(shop: Shop): boolean {
+  if (!shop.openTime || !shop.closeTime || !shop.openDays) return false;
+  const { day, mins } = nowInSA();
+  return shop.openDays.includes(day) && mins >= minutes(shop.openTime) && mins < minutes(shop.closeTime);
+}
+
+export function daysLabel(days: number[] | undefined): string {
+  if (!days || days.length === 0) return "";
+  if (days.length === 7) return "every day";
+  const sorted = [...days].sort();
+  if (sorted.join() === "1,2,3,4,5,6") return "Mon – Sat";
+  if (sorted.join() === "1,2,3,4,5") return "Mon – Fri";
+  return sorted.map((d) => DAY_NAMES[d]).join(", ");
+}
+
+export function hoursLabel(shop: Shop): string {
+  if (!shop.openTime) return shop.hours;
+  return `${shop.openTime} – ${shop.closeTime}, ${daysLabel(shop.openDays)}`;
+}
+
+export function stockLevel(qty: number): { label: string; tone: "in" | "low" | "out" } {
+  if (qty <= 0) return { label: "Sold out", tone: "out" };
+  if (qty <= 5) return { label: `Only ${qty} left`, tone: "low" };
+  return { label: "In stock", tone: "in" };
 }

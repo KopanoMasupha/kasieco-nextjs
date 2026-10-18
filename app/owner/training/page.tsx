@@ -1,5 +1,7 @@
 "use client";
 
+import ComplianceTabs from "@/components/ComplianceTabs";
+
 import { useStore } from "@/lib/store";
 import { TRAINING_TOPIC_LABEL } from "@/lib/types";
 import { CalendarDays, MapPin, Users, Store, CheckCircle2, Landmark } from "lucide-react";
@@ -25,12 +27,13 @@ export default function TrainingPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
+      <ComplianceTabs />
       <div>
-        <h1 className="flex items-center gap-2 text-xl font-bold text-ink">
-          <Landmark size={20} className="text-ember-dark" /> Government training sessions
+        <h1 className="flex items-center gap-2 text-3xl font-bold text-ink">
+          <Landmark size={20} className="text-ember-dark" /> Training
         </h1>
         <p className="text-sm text-ink/50">
-          Run by the Wholesale &amp; Retail SETA together with Sefa. Free, in person, near you.
+          Free, in person · W&amp;R SETA and Sefa
         </p>
       </div>
 

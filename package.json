@@ -1,12 +1,14 @@
 {
-  "name": "kasi-connect",
+  "name": "mzansiconnect",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "tsx scripts/test-flow.ts",
+    "build:prototype": "node prototype/build.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",
@@ -28,6 +30,11 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "esbuild": "^0.23.1",
+    "tsx": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.18"
   }
 }

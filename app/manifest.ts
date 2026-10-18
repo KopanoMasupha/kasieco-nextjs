@@ -2,17 +2,17 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "KasiEco — buy together, swap stock, get found",
-    short_name: "KasiEco",
+    name: "MzansiConnect — Buy together. Pay less.",
+    short_name: "MzansiConnect",
     description:
-      "KasiEco: township shops pool wholesale buying, exchange stock, and help customers find verified shops.",
+      "Kasi shops pool wholesale orders and save together with MzansiConnect.",
     id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#FBF7F1",
-    theme_color: "#E85D2B",
+    background_color: "#F6F2EC",
+    theme_color: "#F6F2EC",
     categories: ["business", "shopping", "productivity"],
     icons: [
       {

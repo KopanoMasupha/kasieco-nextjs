@@ -72,7 +72,8 @@ export default function ConsumerHome() {
         const matches = q
           ? shopGoods.filter((g) => g.name.toLowerCase().includes(q))
           : shopGoods;
-        return { shop, dist, matches, qualifies: q ? matches.length > 0 : shopGoods.length > 0 };
+        const nameMatches = q ? shop.name.toLowerCase().includes(q) : false;
+        return { shop, dist, matches, qualifies: q ? matches.length > 0 || nameMatches : true };
       })
       .filter((r) => r.qualifies && r.dist <= Math.max(area.radiusKm, 3))
       .sort((a, b) => a.dist - b.dist);
@@ -81,11 +82,8 @@ export default function ConsumerHome() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-ink">Find a shop near you</h1>
-        <p className="text-sm text-ink/50">
-          Search for what you need, or browse shops on the map. Only shops with it in
-          stock show up — visit in store to buy.
-        </p>
+        <h1 className="text-3xl font-bold text-ink">Find a shop</h1>
+        <p className="text-sm text-ink/50">Search, then see who has it.</p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -178,7 +176,7 @@ export default function ConsumerHome() {
             ))}
             {results.length === 0 && (
               <div className="card p-6 text-center text-sm text-ink/45">
-                No registered shops match yet. Try a different search, or pan the map.
+                No shops match. Try another search.
               </div>
             )}
           </div>

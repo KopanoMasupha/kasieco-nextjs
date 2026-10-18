@@ -1,5 +1,5 @@
+import { formatCents, toCents } from "./pot";
 import { Pool, PriceTier } from "./types";
-export { formatRand } from "./currency";
 
 export function totalQty(pool: Pool): number {
   return pool.commitments.reduce((sum, c) => sum + c.qty, 0);
@@ -30,7 +30,7 @@ export function unitsToNextTier(pool: Pool): number {
   return Math.max(0, nt.minQty - totalQty(pool));
 }
 
-export function rebateFor(pool: Pool, paidPrice: number): number {
-  const cur = currentTier(pool).price;
-  return Math.max(0, paidPrice - cur);
+/** Rands → "R1 234.50". One formatter for the whole app (en-ZA locale uses a comma decimal, which confused people). */
+export function formatRand(n: number): string {
+  return formatCents(toCents(n));
 }

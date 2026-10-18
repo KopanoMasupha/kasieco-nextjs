@@ -1,12 +1,12 @@
 "use client";
 
+import ComplianceTabs from "@/components/ComplianceTabs";
+
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { statusLabel, STATUS_STYLE } from "@/lib/compliance";
-import { startVerificationProcess } from "@/lib/verificationProcess";
 import { ComplianceDocType, COMPLIANCE_DOC_LABEL } from "@/lib/types";
 import Certificate from "@/components/Certificate";
 import {
@@ -26,7 +26,9 @@ const DOC_TYPES: ComplianceDocType[] = [
   "cipc-registration",
   "certificate-of-acceptability",
   "municipal-trading-licence",
+  "tax-clearance",
   "id-document",
+  "other",
 ];
 
 interface DraftDoc {
@@ -37,7 +39,6 @@ interface DraftDoc {
 
 export default function CompliancePage() {
   const { state, dispatch } = useStore();
-  const router = useRouter();
   const shop = state.shops.find((s) => s.id === state.myShopId);
   const [showUpload, setShowUpload] = useState(false);
   const [docs, setDocs] = useState<DraftDoc[]>([
@@ -81,18 +82,14 @@ export default function CompliancePage() {
     });
     setSubmitting(false);
     setShowUpload(false);
-    // start the simulated CIPC / B-BBEE / Tshwane verification window
-    startVerificationProcess(shop!.id, "documents");
-    router.push("/owner/verify-status");
   }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <ComplianceTabs />
       <div>
-        <h1 className="text-xl font-bold text-ink">Compliance & verification</h1>
-        <p className="text-sm text-ink/50">
-          Only verified shops appear to customers and can trade with other kasi shops.
-        </p>
+        <h1 className="text-3xl font-bold text-ink">Compliance</h1>
+        <p className="text-sm text-ink/50">Verified shops can trade and appear on the map.</p>
       </div>
 
       <motion.div
@@ -159,23 +156,16 @@ export default function CompliancePage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Link href="/owner/learn" className="card block p-5 transition-shadow hover:shadow-md">
             <GraduationCap size={22} className="text-ember-dark" />
-            <h3 className="mt-3 font-semibold text-ink">Take the free compliance course</h3>
-            <p className="mt-1 text-sm text-ink/50">
-              A short course on registration, food safety and by-laws. Pass the quiz and
-              get verified immediately, with a certificate issued in partnership with the
-              Dept. of Small Business Development pilot programme.
-            </p>
-            <p className="mt-3 text-xs font-semibold text-ember-dark">Start the course →</p>
+            <h3 className="mt-3 font-semibold text-ink">Free course</h3>
+            <p className="mt-1 text-sm text-ink/50">15 minutes. Pass the quiz, get verified.</p>
+            <p className="mt-3 text-xs font-semibold text-ember-dark">Start →</p>
           </Link>
 
           <button onClick={() => setShowUpload((v) => !v)} className="card block p-5 text-left transition-shadow hover:shadow-md">
             <UploadCloud size={22} className="text-leaf" />
-            <h3 className="mt-3 font-semibold text-ink">I already have my documents</h3>
-            <p className="mt-1 text-sm text-ink/50">
-              Upload your CIPC registration, Certificate of Acceptability, or trading
-              licence. A government verifier will check them before your shop goes live.
-            </p>
-            <p className="mt-3 text-xs font-semibold text-leaf">Upload documents →</p>
+            <h3 className="mt-3 font-semibold text-ink">Upload documents</h3>
+            <p className="mt-1 text-sm text-ink/50">CIPC, COA or trading licence.</p>
+            <p className="mt-3 text-xs font-semibold text-leaf">Upload →</p>
           </button>
         </div>
       )}
@@ -185,9 +175,7 @@ export default function CompliancePage() {
           <div className="flex items-center justify-between">
             <p className="font-semibold text-ink">Your documents</p>
             <button
-              onClick={() =>
-                setDocs((d) => [...d, { docType: "cipc-registration", fileName: "", referenceNumber: "" }])
-              }
+              onClick={() => setDocs((d) => [...d, { docType: "other", fileName: "", referenceNumber: "" }])}
               className="flex items-center gap-1 text-xs font-semibold text-ember-dark"
             >
               <Plus size={13} /> Add another
@@ -234,7 +222,7 @@ export default function CompliancePage() {
             </div>
           ))}
           <p className="text-xs text-ink/40">
-            This is a hackathon prototype — file contents aren't stored, only the file name and any reference number you give.
+            Demo: only file names are kept.
           </p>
           <button disabled={submitting} onClick={submitDocs} className="btn-ember w-full py-2.5 text-sm">
             {submitting ? <Loader2 size={15} className="animate-spin" /> : "Submit for review"}

@@ -1,43 +1,35 @@
+/**
+ * Hero slideshow photos. They load from Wikimedia Commons (openly licensed).
+ * To use your own photos instead, drop them in /public/townships/ and change
+ * `src` to e.g. "/townships/mamelodi.jpg" — no other code changes needed.
+ */
 export interface TownshipSlide {
   township: string;
   province: string;
+  caption: string;
   src: string;
   credit: string;
-  license: string;
-  sourceUrl: string;
+  creditUrl: string;
 }
 
+const commons = (file: string, width = 1800) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${width}`;
+const page = (file: string) => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, "_"))}`;
+
+const slide = (township: string, province: string, caption: string, file: string, author = "Wikimedia Commons contributors"): TownshipSlide => ({
+  township,
+  province,
+  caption,
+  src: commons(file),
+  credit: `Photo: ${author} · Wikimedia Commons`,
+  creditUrl: page(file),
+});
+
 export const TOWNSHIP_SLIDES: TownshipSlide[] = [
-  {
-    township: "Mamelodi",
-    province: "Gauteng",
-    src: "https://upload.wikimedia.org/wikipedia/commons/3/30/Mamelodi.JPG",
-    credit: "Photographer not identified on Commons",
-    license: "CC BY-SA 3.0",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Mamelodi.JPG",
-  },
-  {
-    township: "Soweto",
-    province: "Gauteng",
-    src: "https://upload.wikimedia.org/wikipedia/commons/8/84/Soweto_Market_2011.jpg",
-    credit: "Nolabob",
-    license: "CC BY-SA 4.0",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Soweto_Market_2011.jpg",
-  },
-  {
-    township: "Khayelitsha",
-    province: "Western Cape",
-    src: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Khayelitsha%2C_Baden_Powell_Drive_%28South_Africa%29.jpg",
-    credit: "Olga Ernst",
-    license: "CC BY-SA 4.0",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Khayelitsha,_Baden_Powell_Drive_(South_Africa).jpg",
-  },
-  {
-    township: "Umlazi",
-    province: "KwaZulu-Natal",
-    src: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Umlazi%2C_South_Africa.jpg",
-    credit: "Yan-Di Chang",
-    license: "CC BY 2.0",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Umlazi,_South_Africa.jpg",
-  },
+  slide("Mamelodi", "Gauteng", "Where MzansiConnect's first pots are filling up", "Mamelodi.jpg"),
+  slide("Soweto", "Gauteng", "Every street has a spaza that could buy smarter", "Soweto_township.jpg", "Matt-80 (CC BY 2.0)"),
+  slide("Khayelitsha", "Western Cape", "Small businesses keep kasi money in the kasi", "Small business in Khayelitsha.jpg"),
+  slide("Umlazi", "KwaZulu-Natal", "One platform from Durban to Tshwane", "Umlazi, South Africa.jpg"),
+  slide("Site C, Khayelitsha", "Western Cape", "Corner stores that swap stock instead of running out", "Khayelitsha Site-C Cash-Store.JPG"),
+  slide("Khayelitsha", "Western Cape", "Customers find what's on the shelf before they walk", "Minibus Taxis in Khayelitsha, South Africa.JPG"),
 ];

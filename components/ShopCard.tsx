@@ -51,7 +51,7 @@ export default function ShopCard({
       <div className={`relative flex h-28 items-center justify-center ${CATEGORY_BG[shop.category]}`}>
         <Icon size={34} strokeWidth={1.6} />
         {shop.verified && (
-          <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-leaf">
+          <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-leaf">
             <BadgeCheck size={12} />
             Verified
           </span>

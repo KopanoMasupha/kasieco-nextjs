@@ -1,5 +1,7 @@
 "use client";
 
+import ComplianceTabs from "@/components/ComplianceTabs";
+
 import Link from "next/link";
 import { useStore } from "@/lib/store";
 import { GraduationCap, Clock, ArrowRight, ShieldCheck } from "lucide-react";
@@ -11,11 +13,10 @@ export default function LearnPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
+      <ComplianceTabs />
       <div>
-        <h1 className="text-xl font-bold text-ink">Compliance courses</h1>
-        <p className="text-sm text-ink/50">
-          Free, plain-language courses. Pass the quiz and your shop is verified immediately.
-        </p>
+        <h1 className="text-3xl font-bold text-ink">Courses</h1>
+        <p className="text-sm text-ink/50">Pass the quiz, get verified.</p>
       </div>
 
       {alreadyVerified && (

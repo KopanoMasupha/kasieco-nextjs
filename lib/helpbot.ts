@@ -1,45 +1,210 @@
-export const HELP_TOPICS: Record<string, string> = {
-  pot: "Bulk-buy pots are a sandbox demo. A verified shop pays its quoted share into a cents-based ledger. If the pot reaches its minimum, the owner can close it; otherwise the owner can cancel and the recorded contributions are refunded. No real money moves.",
-  refund: "In the prototype, only the shop that opened a pot can cancel it, and only before the minimum is reached. Every contribution is returned as a ledger refund. Real gateway refunds are not connected.",
-  payment: "Payment choices in bulk-buy are Instant EFT, bank card, or KasiEco wallet, all simulated. No payment provider or real funds are connected.",
-  ledger: "The pot ledger records contributions, rebates, refunds and settlement entries with references and running balances. The pot page includes a browser-side ledger proof.",
-  exchange: "Verified shop owners can post stock they have or need, chat, make stock offers using shelf-price guidance, and both confirm a hand-over before it is recorded complete.",
-  fair: "Exchange offers use comparable verified shops' shelf prices as a guide and suggest a cash adjustment. Both shops still decide whether to accept.",
-  verification: "Shops can complete the compliance course or submit documents for verifier review. Trading features and customer visibility require a verified status.",
-  funding: "The funding page offers a readiness pre-check and application tracker. Programme details change, so always confirm eligibility, dates and terms on the provider's official site.",
-  stock: "On My stock, record sales as they happen. The assistant estimates days of stock from the last seven days of logged sales and can highlight nearby verified shops that may need surplus.",
-  fee: "The prototype models a 2% fee on pot goods value. All money movements are simulated; production fees and payment handling need a licensed gateway and legal review.",
-  delivery: "Closing a qualifying pot records wholesaler, driver and service-fee payouts. The delivery progress shown in this demo is simulated, not connected to a driver.",
-  training: "The compliance area includes the course and listed training sessions. Availability should be confirmed with the training provider.",
-  offline: "Customers use KasiEco to browse verified shops, available stock and prices, then contact or visit the shop. Online orders and customer payments are not part of this app.",
-  reviews: "Reviews and ratings are not available yet; they may be considered for a later version.",
-  languages: "The interface currently uses English. Additional South African languages are not available yet and may come in a future version.",
-  app: "KasiEco is a responsive web app with PWA support, but there is no separate downloadable Android or iPhone app yet.",
-  wholesaler: "The prototype has a small demo wholesaler catalogue. Onboarding real large wholesalers and syncing their live prices is not implemented yet.",
-};
+/**
+ * MzansiConnect helper: answers questions about how the platform works.
+ * Rule-based so it works offline and never invents features; when an
+ * ANTHROPIC_API_KEY is set, /api/ai/chat hands the same knowledge to Claude
+ * for more natural answers.
+ */
 
-export function answerHelp(question: string): string {
+export interface HelpLink {
+  label: string;
+  href: string;
+}
+
+interface Intent {
+  id: string;
+  keywords: string[];
+  answer: string;
+  links?: HelpLink[];
+}
+
+export const INTENTS: Intent[] = [
+  {
+    id: "deal",
+    keywords: ["deal", "bulk", "pot", "pool", "group buy", "buy together", "join", "price drop", "cheaper", "how much do i pay", "buy"],
+    answer:
+      "MzansiConnect partners with wholesalers who put up a bulk lot (for example 60 bales of maize meal). On 'Buy' you reserve the units you want — it's free, you pay nothing yet. The more shops reserve, the lower the price. When the whole lot is reserved, the price locks at the lowest tier and everyone pays that same final price within 48 hours, through TradeSafe. Then MzansiConnect orders it for all of you.",
+    links: [{ label: "See deals", href: "/owner/pools" }],
+  },
+  {
+    id: "wallet",
+    keywords: ["wallet", "top up", "topup", "top-up", "load money", "balance", "withdraw", "eft", "card", "cash", "pay", "payment", "bank", "tradesafe", "escrow"],
+    answer:
+      "There's no wallet to top up. You only pay when a deal you reserved is full: you get a message, then tap 'Pay with TradeSafe' and pay by Instant EFT, card, or cash at a shop till. TradeSafe — a licensed escrow company — holds the money in trust, not MzansiConnect. It's released to the wholesaler and driver only after the deal is approved and delivered. Everything you owe or paid is on the Payments page.",
+    links: [{ label: "Payments", href: "/owner/payments" }],
+  },
+  {
+    id: "refund",
+    keywords: ["refund", "money back", "not reached", "target", "minimum", "cancel", "lose my money", "safe"],
+    answer:
+      "If a deal doesn't fill up, it simply closes — you only reserved, so you never paid anything and there's nothing to refund. You pay only once it's full, at the final lowest price, so there are no price-drop refunds either. If a deal is ever cancelled after you paid, TradeSafe refunds you to the account you paid from (usually 1–3 working days). If you don't pay within 48 hours, your spot goes to the next shop on the waitlist — no money taken.",
+  },
+  {
+    id: "after-close",
+    keywords: ["what happens", "closed", "order placed", "confirm", "admin", "when will", "status", "track"],
+    answer:
+      "Every deal page shows a tracker with 7 steps: Joining (shops reserve) → Full · pay (everyone pays into TradeSafe within 48 hours) → Paid (MzansiConnect checks every payment) → Ordered (two admins approve paying the wholesaler from escrow) → Delivery booked (you get a date, a time slot and a driver) → On the way → Delivered. You get a message at every step — tap the bell at the top.",
+    links: [{ label: "My messages", href: "/inbox" }],
+  },
+  {
+    id: "delivery-code",
+    keywords: ["code", "delivery code", "pin for delivery", "right person", "stolen", "wrong shop"],
+    answer:
+      "Every shop in a deal gets its own 4-digit delivery code on the deal page. When the driver arrives, count your stock first, then read the code to the driver. The driver types it in — the delivery only counts when the code matches, so stock can't be handed to the wrong person.",
+  },
+  {
+    id: "delivery",
+    keywords: ["delivery", "driver", "transport", "truck", "bakkie", "collect", "late", "time slot", "missed"],
+    answer:
+      "After the order is placed, MzansiConnect's planner groups shops by township (Mamelodi, Soshanguve, Ga-Rankuwa and so on), picks a vehicle big enough for the load, and gives every shop a 30-minute time slot inside its opening hours. You get a message when the driver collects the stock and when it's handed over. If the driver misses you, MzansiConnect rebooks a new time.",
+  },
+  {
+    id: "delivery-choices",
+    keywords: ["not there", "miss", "missed", "away", "choose day", "which day", "morning", "afternoon", "backup", "someone else", "i'll be there", "confirm", "re-delivery", "redelivery"],
+    answer:
+      "When you join a deal you choose the days you can receive stock (Mon–Sat), morning or afternoon, and what happens if nobody is there: the driver comes back later that day, leaves it at a partner shop you trust nearby, brings it on the next run, or you collect it at the wholesaler. You can name a backup person who gets their own code. When your delivery is booked, tap \"I'll be there\". If you confirm and then aren't there, a R30 re-delivery fee is added to your Payments page.",
+  },
+  {
+    id: "drop-point",
+    keywords: ["drop point", "partner shop", "neighbour", "keep stock", "hold stock", "earn"],
+    answer:
+      "A drop point is a verified shop that keeps a neighbour's missed delivery for up to 72 hours. The owner chooses it in advance, the driver leaves the sealed stock there with the drop point's code, and the owner collects it with their own delivery code. The drop point earns R5 per unit. Turn it on under 'Drop point' in the menu.",
+    links: [{ label: "Drop point", href: "/owner/partner" }],
+  },
+  {
+    id: "two-admins",
+    keywords: ["admin", "approve", "approval", "two-person", "who checks", "fraud", "steal"],
+    answer:
+      "MzansiConnect has two admins: one for deals and money, one for deliveries and drivers. Money only leaves a deal (paying the wholesaler, or refunds when a deal is cancelled) when one admin asks and a different admin approves. Every approval is recorded with names and times.",
+  },
+  {
+    id: "driver-help",
+    keywords: ["accept trip", "my trips", "i am a driver", "load list", "can't deliver"],
+    answer:
+      "Drivers: open 'My trips', tap 'Accept this trip', then 'I've collected the stock' at the wholesaler. At each shop, count the stock with the owner, ask for their 4-digit code and type it in. If nobody's there, tap 'I can't deliver here' and pick a reason — MzansiConnect will rebook. You're paid automatically when every stop on the trip is delivered.",
+    links: [{ label: "My trips", href: "/driver" }],
+  },
+  {
+    id: "proof",
+    keywords: ["proof", "trust", "ledger", "see payments", "transparent", "audit", "where is my money"],
+    answer:
+      "Every deal has a live money list: every payment in and out, with a reference number and the running balance. The 'Ledger proof' panel re-checks the whole pot in your own browser — money in minus money out equals the balance, it never went below R0, and it ends at exactly R0 when the deal is finished.",
+    links: [{ label: "Open a deal", href: "/owner/pools" }],
+  },
+  {
+    id: "exchange",
+    keywords: ["exchange", "swap", "trade", "short", "extra", "fair", "unfair", "willing", "seller", "sell to"],
+    answer:
+      "Willing buyer & seller lets verified shops sell or swap stock with each other. Post what you have extra of or are short on, and you'll see matches nearby. When you make an offer, MzansiConnect shows what each side is worth at the average shelf price kasi shops charge, and suggests a cash top-up so it's fair. Nothing happens until both shops accept, and both confirm the hand-over.",
+    links: [{ label: "Willing buyer & seller", href: "/owner/exchange" }],
+  },
+  {
+    id: "verify",
+    keywords: ["verify", "verified", "compliance", "register", "registration", "documents", "badge", "cipc", "permit", "certificate"],
+    answer:
+      "You can't register a shop without passing the compliance quiz. It's the last step of registration: read four short lessons (registration, food safety, by-laws), answer the quiz, and score at least 70%. Pass and your shop is registered and Verified straight away, with a certificate. Didn't pass? Your wrong answers are shown — fix them and try again. You can still upload documents (CIPC, Certificate of Acceptability, trading permit) later for a verifier to keep on file.",
+    links: [
+      { label: "Compliance", href: "/owner/compliance" },
+      { label: "Free course", href: "/owner/learn" },
+    ],
+  },
+  {
+    id: "funding",
+    keywords: ["fund", "funding", "grant", "loan", "money for my business", "nyda", "sefa", "sedfa", "nef", "support", "opportunit"],
+    answer:
+      "The Funding page lists grants, loans and programmes for township businesses — like the Spaza Shop Support Fund, TREP and the NYDA Grant — with what you get, who qualifies and how to apply. Answer a few questions once and MzansiConnect pre-checks which ones fit you. You can track each one from 'saved' to 'applied'. Always confirm details on the official site, because programmes change.",
+    links: [{ label: "Funding & support", href: "/owner/funding" }],
+  },
+  {
+    id: "stock-ai",
+    keywords: ["stock", "ai", "insight", "run out", "running low", "overstock", "sales", "record a sale"],
+    answer:
+      "The stock assistant on 'My stock' reads your stock counts and the sales you log, works out how many days of stock you have left, and flags items about to run out or sitting on the shelf. For extra stock it looks for a nearby verified shop that's short on the same thing, so you can offer it on Willing buyer & seller.",
+    links: [{ label: "My stock", href: "/owner/stock" }],
+  },
+  {
+    id: "customer-buy",
+    keywords: ["order", "buy online", "checkout", "cart", "basket", "deliver to me", "customer pay", "purchase"],
+    answer:
+      "Customers can't order or pay online yet. Right now you can find verified shops near you, see what they have on the shelf and their prices, check if they're open, and call, WhatsApp or get directions. Online ordering is on our roadmap for a later phase.",
+    links: [{ label: "Find shops", href: "/consumer" }],
+  },
+  {
+    id: "find",
+    keywords: ["find", "near me", "map", "which shop", "where can i", "open now", "hours"],
+    answer:
+      "Open the map, search for what you need (like 'bread' or 'airtime'), or pick a township. Only verified shops that have it in stock show up, nearest first. Each shop page shows opening hours, whether it's open now, prices and stock levels.",
+    links: [{ label: "Open the map", href: "/consumer" }],
+  },
+  {
+    id: "fees",
+    keywords: ["fee", "cost", "charge", "commission", "free", "how do you make money"],
+    answer:
+      "Joining MzansiConnect is free. On deals there's a 2% service fee on the goods value, shown before you pay. The delivery cost is split between shops by how many units each one bought. Reserving is free; you pay through TradeSafe only when the deal fills.",
+  },
+  {
+    id: "training",
+    keywords: ["training", "seta", "workshop", "class", "learn"],
+    answer:
+      "Under Compliance → Government training you can register for free in-person sessions run by the Wholesale & Retail SETA with SEDFA — registration, food safety, inventory and bookkeeping.",
+    links: [{ label: "Training sessions", href: "/owner/training" }],
+  },
+];
+
+/** Things people ask about that we don't do yet — answered honestly. */
+const ROADMAP: { keywords: string[]; answer: string }[] = [
+  { keywords: ["review", "rating", "stars"], answer: "Customer reviews and ratings aren't on MzansiConnect yet — they're planned for a later phase, once enough shops and customers are trading on the platform." },
+  { keywords: ["zulu", "sotho", "xhosa", "tswana", "language", "afrikaans"], answer: "MzansiConnect is English-only for now. isiZulu, Sesotho, isiXhosa and other languages are on the roadmap." },
+  { keywords: ["loan from kasieco", "credit", "lend"], answer: "MzansiConnect doesn't lend money itself. The Funding page points you to grants and loans from government and partners." },
+  { keywords: ["app store", "android app", "download app", "ios"], answer: "There's no app-store app yet — MzansiConnect runs in your phone's browser. A downloadable app is planned." },
+  { keywords: ["makro", "supplier list", "add supplier", "my own deal", "start a deal"], answer: "Deals come only from wholesalers MzansiConnect has partnered with, so prices and stock are checked. Shops can't start their own deals — but you can tell MzansiConnect what you'd like to see by sending a message from the bell at the top." },
+];
+
+const FALLBACK =
+  "We don't have that on MzansiConnect yet, but I've noted it as something to look at in future. I can help with payments, joining deals, deliveries and codes, Willing buyer & seller, getting verified, funding, your stock, or finding shops near you.";
+
+export const SUGGESTIONS = [
+  "How do I pay?",
+  "How does a deal work?",
+  "What is the delivery code?",
+  "What if the deal doesn't fill up?",
+  "How do I get verified?",
+  "What funding can I get?",
+  "Can customers order online?",
+];
+
+function score(text: string, keywords: string[]) {
+  return keywords.reduce((n, k) => (text.includes(k) ? n + k.length : n), 0);
+}
+
+export function answerQuestion(question: string): { text: string; links?: HelpLink[] } {
   const q = question.toLowerCase();
-  const keys: [string[], string][] = [
-    [["pot", "bulk", "join", "close"], "pot"],
-    [["refund", "cancel"], "refund"],
-    [["pay", "payment", "eft", "card", "wallet"], "payment"],
-    [["ledger", "proof", "balance"], "ledger"],
-    [["exchange", "swap", "offer"], q.includes("fair") || q.includes("value") ? "fair" : "exchange"],
-    [["verify", "compliance", "document", "course"], "verification"],
-    [["fund", "grant", "loan"], "funding"],
-    [["stock", "sale", "surplus", "days"], "stock"],
-    [["fee", "charge"], "fee"],
-    [["deliver", "driver"], "delivery"],
-    [["training", "seta"], "training"],
-    [["order", "customer", "buy online", "checkout"], "offline"],
-    [["review", "rating"], "reviews"],
-    [["language", "isiZulu", "Sesotho", "isiXhosa", "Afrikaans"], "languages"],
-    [["download", "app", "install"], "app"],
-    [["makro", "wholesaler"], "wholesaler"],
-  ];
-  for (const [terms, topic] of keys) {
-    if (terms.some((term) => q.includes(term))) return HELP_TOPICS[topic];
+  if (/^\s*(hi|hello|hey|sawubona|dumela|molo|howzit)\b/.test(q)) {
+    return { text: "Sawubona! Ask me anything about payments, deals, deliveries, Willing buyer & seller, getting verified or funding." };
   }
-  return "I can help explain bulk-buy pots, refunds, payments, the ledger, exchanges, verification, funding, stock insights and delivery. If you're asking about something else, I don't have a confirmed answer yet.";
+  let best: { s: number; i?: Intent; r?: (typeof ROADMAP)[number] } = { s: 0 };
+  for (const i of INTENTS) {
+    const s = score(q, i.keywords);
+    if (s > best.s) best = { s, i };
+  }
+  for (const r of ROADMAP) {
+    const s = score(q, r.keywords) + 1; // a roadmap hit beats a weak generic match
+    if (s > best.s && score(q, r.keywords) > 0) best = { s, r };
+  }
+  if (best.r) return { text: best.r.answer };
+  if (best.i) return { text: best.i.answer, links: best.i.links };
+  return { text: FALLBACK };
+}
+
+/** The same knowledge, written out for Claude. */
+export function helpbotSystemPrompt(role: string) {
+  return [
+    "You are the MzansiConnect helper, inside a web platform for South African township (kasi) shops.",
+    `The person is using the app as a ${role === "owner" ? "shop owner" : role === "admin" ? "MzansiConnect admin" : role === "driver" ? "delivery driver" : "customer"}.`,
+    "Answer in 2–4 short, friendly, plain-English sentences. Use rands (R). No markdown headings.",
+    "Only describe features listed below. If asked about anything else, say MzansiConnect doesn't have it yet and it may come in a future phase — never invent features, prices or programme details.",
+    "FEATURES:",
+    ...INTENTS.map((i) => `- ${i.answer}`),
+    "NOT YET AVAILABLE (say so honestly):",
+    ...ROADMAP.map((r) => `- ${r.answer}`),
+  ].join("\n");
 }

@@ -1,51 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useStore } from "@/lib/store";
+import { useStore, useMe } from "@/lib/store";
 import { COMPLIANCE_DOC_LABEL } from "@/lib/types";
-import { ShieldCheck, Lock, CheckCircle2, XCircle, Clock, GraduationCap } from "lucide-react";
-
-const VERIFIER_PASSCODE = "GOV2026";
+import { STATUS_STYLE, statusLabel } from "@/lib/compliance";
+import PostOpportunityForm from "@/components/PostOpportunityForm";
+import { ShieldCheck, CheckCircle2, XCircle, Clock, GraduationCap } from "lucide-react";
 
 export default function VerifyPage() {
   const { state, dispatch } = useStore();
-  const [passcode, setPasscode] = useState("");
-  const [attemptError, setAttemptError] = useState(false);
+  const me = useMe();
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [programme, setProgramme] = useState({ name: "", provider: "", type: "Grant", summary: "", officialUrl: "" });
-  const [resetError, setResetError] = useState("");
-  const [resetBusy, setResetBusy] = useState(false);
-
-  if (!state.verifierUnlocked) {
-    return (
-      <div className="mx-auto max-w-sm py-16 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink/5 text-ink/60">
-          <Lock size={24} />
-        </div>
-        <h1 className="mt-4 text-lg font-bold text-ink">Government verifier portal</h1>
-        <p className="mt-1 text-sm text-ink/50">Enter your access code to review submitted shop documents.</p>
-        <input
-          value={passcode}
-          onChange={(e) => {
-            setPasscode(e.target.value);
-            setAttemptError(false);
-          }}
-          type="password"
-          placeholder="Access code"
-          className="input mt-5 text-center"
-        />
-        {attemptError && <p className="mt-2 text-xs font-medium text-red-500">That code isn't right.</p>}
-        <button
-          onClick={() => (passcode === VERIFIER_PASSCODE ? dispatch({ type: "UNLOCK_VERIFIER" }) : setAttemptError(true))}
-          className="btn-dark mt-4 w-full py-3 text-sm"
-        >
-          Enter
-        </button>
-        <p className="mt-3 text-xs text-ink/30">Demo code: {VERIFIER_PASSCODE}</p>
-      </div>
-    );
-  }
 
   const pending = state.verificationRequests.filter((r) => r.status === "pending");
   const decided = state.verificationRequests
@@ -59,48 +25,37 @@ export default function VerifyPage() {
       requestId,
       decision,
       note: notes[requestId] || "",
-      decidedBy: "Verifier portal",
+      decidedBy: me?.name ?? "Verifier",
     });
     setBusyId(null);
-  }
-
-  async function publishProgramme() {
-    const result = await dispatch({
-      type: "PUBLISH_FUNDING_PROGRAMME",
-      programme: { id: "", ...programme },
-    });
-    if (!result.error) setProgramme({ name: "", provider: "", type: "Grant", summary: "", officialUrl: "" });
-  }
-
-  async function resetDemoData() {
-    if (!window.confirm("Reset all demo shops, stock, pots, applications and verification data? This cannot be undone.")) return;
-    const accessCode = passcode || window.prompt("Enter verifier access code");
-    if (!accessCode) return;
-    setResetBusy(true);
-    setResetError("");
-    try {
-      const response = await fetch("/api/reset", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ accessCode }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Could not reset demo data");
-      window.location.reload();
-    } catch (cause) {
-      setResetError(cause instanceof Error ? cause.message : "Could not reset demo data");
-      setResetBusy(false);
-    }
   }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="flex items-center gap-2 text-xl font-bold text-ink">
+        <h1 className="flex items-center gap-2 text-3xl font-bold text-ink">
           <ShieldCheck size={20} className="text-ember-dark" /> Verification queue
         </h1>
-        <p className="text-sm text-ink/50">Documents submitted directly by shop owners, awaiting your decision.</p>
+        <p className="text-sm text-ink/50">Awaiting your decision.</p>
       </div>
+
+      <section className="card p-5">
+        <h2 className="font-semibold text-ink">Compliance register</h2>
+        <p className="text-xs text-ink/45">Every shop and its status.</p>
+        <div className="mt-3 divide-y divide-ink/5">
+          {state.shops.map((s) => (
+            <div key={s.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-ink">{s.name}</span>
+                <span className="text-xs text-ink/40">
+                  {s.township} · {s.verificationMethod === "course" ? "via compliance course" : s.verificationMethod === "document" ? "via documents" : "not started"}
+                </span>
+              </span>
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLE[s.verificationStatus]}`}>{statusLabel(s.verificationStatus)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="space-y-4">
         {pending.length === 0 && (
@@ -194,32 +149,16 @@ export default function VerifyPage() {
           </div>
         </div>
       )}
+      <PostOpportunityForm />
 
-      <section className="card space-y-3 p-5">
-        <div>
-          <h2 className="font-semibold text-ink">Advertise a funding opportunity</h2>
-          <p className="text-xs text-ink/45">Published opportunities appear in the owner funding marketplace. Use a provider URL that owners can verify.</p>
-        </div>
-        <input aria-label="Programme name" value={programme.name} onChange={(event) => setProgramme({ ...programme, name: event.target.value })} placeholder="Programme name" className="input" />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <input aria-label="Provider" value={programme.provider} onChange={(event) => setProgramme({ ...programme, provider: event.target.value })} placeholder="Provider" className="input" />
-          <input aria-label="Funding type" value={programme.type} onChange={(event) => setProgramme({ ...programme, type: event.target.value })} placeholder="Grant, loan, mentorship…" className="input" />
-        </div>
-        <textarea aria-label="Programme summary" value={programme.summary} onChange={(event) => setProgramme({ ...programme, summary: event.target.value })} placeholder="Plain-language details" rows={3} className="input" />
-        <input aria-label="Official URL" type="url" value={programme.officialUrl} onChange={(event) => setProgramme({ ...programme, officialUrl: event.target.value })} placeholder="https://official-provider.example" className="input" />
-        <button disabled={!programme.name.trim() || !programme.provider.trim() || !programme.summary.trim() || !programme.officialUrl.trim()} onClick={publishProgramme} className="btn-ember px-4 py-2.5 text-sm">
-          Publish opportunity
-        </button>
-      </section>
-
-      <section className="card space-y-2 border-red-200 p-5">
-        <h2 className="font-semibold text-ink">Reset demo data</h2>
-        <p className="text-xs text-ink/50">Restore the seeded demonstration state. This removes changes made during the demo.</p>
-        {resetError && <p role="alert" className="text-sm text-red-600">{resetError}</p>}
-        <button disabled={resetBusy} onClick={resetDemoData} className="btn-outline border-red-200 text-red-700">
-          {resetBusy ? "Resetting…" : "Reset demo data"}
-        </button>
-      </section>
+      <button
+        onClick={() => {
+          if (confirm("Reset the demo?")) dispatch({ type: "RESET_DEMO" });
+        }}
+        className="text-xs text-ink/40 underline hover:text-ink/70"
+      >
+        Reset demo data
+      </button>
     </div>
   );
 }

@@ -1,73 +1,44 @@
-import { FundingProfile, FundingProgramme } from "./types";
+import { FundingOpportunity, FundingProfile, Shop } from "./types";
 
-export const SEED_FUNDING_PROGRAMMES: FundingProgramme[] = [
-  {
-    id: "spaza-support",
-    name: "Spaza Shop Support Fund",
-    provider: "DSBD via NEF and SEDFA",
-    type: "Grant + loan",
-    summary: "Support for qualifying spaza shops. Confirm the latest package, eligibility and application process with the programme administrator.",
-    officialUrl: "https://www.dsbd.gov.za/",
-    requiresCipc: true,
-    requiresPermit: true,
-  },
-  {
-    id: "trep",
-    name: "Township and Rural Entrepreneurship Programme (TREP)",
-    provider: "DSBD via SEDFA",
-    type: "Blended finance",
-    summary: "Financial and non-financial support for qualifying township and rural enterprises. Check current calls and terms with SEDFA.",
-    officialUrl: "https://www.dsbd.gov.za/",
-    requiresCipc: true,
-  },
-  {
-    id: "nyda-grant",
-    name: "NYDA Grant Programme",
-    provider: "National Youth Development Agency",
-    type: "Grant",
-    summary: "Youth enterprise support for eligible applicants; age and business requirements apply.",
-    officialUrl: "https://www.nyda.gov.za/",
-    ageMin: 18,
-    ageMax: 35,
-  },
-  {
-    id: "tholoana",
-    name: "Tholoana Enterprise Programme",
-    provider: "SAB Foundation",
-    type: "Mentorship and growth support",
-    summary: "Enterprise development programme. Application rounds and closing dates can change; check the official programme page.",
-    deadline: "2026-10-13T23:59:59+02:00",
-    officialUrl: "https://sabfoundation.co.za/",
-  },
-  {
-    id: "wrseta",
-    name: "Spaza Shop Training & Support",
-    provider: "Wholesale & Retail SETA with SEDFA",
-    type: "Training",
-    summary: "Training opportunities and, for some cohorts, related business support. Confirm availability with the provider.",
-    officialUrl: "https://www.wrseta.org.za/",
-  },
-];
+export type EligibilityResult = { level: "likely" | "check" | "no"; reasons: string[] };
 
-export function fundingFit(
-  programme: FundingProgramme,
-  profile: FundingProfile,
-  verified: boolean
-): { status: "fit" | "check" | "not-fit"; note: string } {
-  if (programme.ageMin !== undefined && profile.age < programme.ageMin) {
-    return { status: "not-fit", note: `This programme requires applicants to be at least ${programme.ageMin}.` };
+/**
+ * A first-pass check from what the owner told us. It never replaces the
+ * provider's own assessment — it just saves owners from applying blind.
+ */
+export function checkEligibility(op: FundingOpportunity, shop: Shop, profile?: FundingProfile): EligibilityResult {
+  const c = op.criteria;
+  const no: string[] = [];
+  const check: string[] = [];
+
+  if (c.requiresVerified && shop.verificationStatus !== "verified") check.push("Get verified on MzansiConnect first (shows you're compliant)");
+
+  if (c.ageMin !== undefined || c.ageMax !== undefined) {
+    if (profile?.ownerAge === undefined) check.push("Tell us your age");
+    else if ((c.ageMin !== undefined && profile.ownerAge < c.ageMin) || (c.ageMax !== undefined && profile.ownerAge > c.ageMax))
+      no.push(`Owners must be ${c.ageMin ?? 0}–${c.ageMax ?? "any"}`);
   }
-  if (programme.ageMax !== undefined && profile.age > programme.ageMax) {
-    return { status: "not-fit", note: `This programme is for owners aged ${programme.ageMin}–${programme.ageMax}.` };
+  if (c.minTradingMonths !== undefined) {
+    if (profile?.tradingMonths === undefined) check.push("Tell us how long you've been trading");
+    else if (profile.tradingMonths < c.minTradingMonths) no.push(`Needs ${Math.round(c.minTradingMonths / 12)}+ years of trading`);
   }
-  if (programme.monthsTradingMin !== undefined && profile.monthsTrading < programme.monthsTradingMin) {
-    return { status: "not-fit", note: `The business needs at least ${programme.monthsTradingMin} months of trading.` };
+  if (c.requiresCipc) {
+    if (profile?.hasCipc === undefined) check.push("Are you registered with CIPC?");
+    else if (!profile.hasCipc) check.push("Register with CIPC first (the compliance course explains how)");
   }
-  const missing: string[] = [];
-  if (programme.requiresCipc && !profile.cipc) missing.push("CIPC registration");
-  if (programme.requiresPermit && !profile.tradingPermit) missing.push("municipal trading permit");
-  if (!verified) missing.push("KasiEco compliance verification");
-  return missing.length
-    ? { status: "check", note: `Check first: ${missing.join(", ")}. Confirm requirements with the programme.` }
-    : { status: "fit", note: "Looks like a fit based on your answers. The programme provider makes the final decision." };
+  if (c.requiresTradingPermit) {
+    if (profile?.hasTradingPermit === undefined) check.push("Do you have a municipal trading permit?");
+    else if (!profile.hasTradingPermit) check.push("Get your municipal trading permit — the most common reason applications fail");
+  }
+
+  if (no.length) return { level: "no", reasons: no };
+  if (check.length) return { level: "check", reasons: check };
+  return { level: "likely", reasons: ["You meet the basic requirements we can check"] };
+}
+
+export function daysUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return 0;
+  return Math.floor(ms / 86400000); // whole days left; 0 = closes today
 }

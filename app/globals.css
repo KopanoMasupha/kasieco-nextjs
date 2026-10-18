@@ -3,134 +3,165 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --paper: #f6f2ec;
 }
 
 html,
 body {
-  background-color: #f4ebdd;
+  background-color: var(--paper);
   color: #171310;
-  -webkit-text-size-adjust: 100%;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Safety net: never let a stray wide element create a horizontal scrollbar.
-   `clip` (unlike `hidden`) doesn't create a scroll container, so the sticky
-   navbar keeps working. */
-body {
-  overflow-x: clip;
-  background-image: radial-gradient(ellipse at 10% 0%, rgba(232, 93, 43, 0.09), transparent 38%),
-    radial-gradient(ellipse at 90% 12%, rgba(65, 130, 88, 0.08), transparent 34%);
-  background-attachment: fixed;
-}
-
-/*
- * The app-wide horizontal gutter — the single source of truth for the space
- * between the screen edge and the content container. Used identically by the
- * sticky navbar, the main content area and the landing sections so their left
- * and right edges always line up. On notched phones running the PWA standalone,
- * the safe-area inset wins when it is larger than the base gutter.
- */
-.app-gutter {
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
-}
-
-@media (min-width: 640px) {
-  .app-gutter {
-    padding-left: max(1.5rem, env(safe-area-inset-left));
-    padding-right: max(1.5rem, env(safe-area-inset-right));
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
+  h1 {
+    letter-spacing: -0.03em;
+  }
+}
+
+/* plain paper — no colour blobs */
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--paper);
+}
+
+/* the brand stripe: a nod to painted kasi shopfronts */
+.kasi-stripe {
+  height: 4px;
+  background: linear-gradient(90deg, #e85d2b 0 28%, #f2b33d 28% 44%, #2f6d4f 44% 70%, #171310 70% 84%, #3a7bd5 84% 100%);
+}
+
+/* numbers line up */
+.num {
+  font-variant-numeric: tabular-nums;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* let grid columns shrink to the screen instead of growing to their widest child */
+.grid > * {
+  min-width: 0;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
 .leaflet-container {
   width: 100%;
   height: 100%;
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   z-index: 0;
 }
 
-.card {
-  @apply bg-white/75 rounded-xl2 border border-white/80;
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 8px 30px rgba(23, 19, 16, 0.045);
-}
+@layer components {
+  /* ---- surfaces: solid, hairline border, barely-there shadow ---- */
+  .card,
+  .glass {
+    @apply rounded-2xl border border-ink/[0.07] bg-white;
+    box-shadow: 0 1px 2px rgba(23, 19, 16, 0.04);
+  }
 
-.glass {
-  @apply bg-white/55 border border-white/70 rounded-xl2;
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-}
+  .glass-strong {
+    @apply rounded-2xl border border-ink/[0.08] bg-white;
+    box-shadow: 0 1px 2px rgba(23, 19, 16, 0.04), 0 12px 32px -18px rgba(23, 19, 16, 0.18);
+  }
 
-.glass-strong {
-  @apply bg-white/80 border border-white/90 rounded-xl2;
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
-}
+  .glass-dark {
+    @apply rounded-2xl bg-ink text-white;
+  }
 
-.glass-dark {
-  @apply bg-ink/75 border border-white/15 rounded-xl2 text-white;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-}
+  .btn-pill {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
 
-.skeleton {
-  @apply rounded-lg bg-ink/5;
-  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
-}
+  .btn-dark {
+    @apply btn-pill bg-ink text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-40;
+  }
 
-@keyframes skeleton-shimmer {
-  to { background-position: -200% 0; }
-}
+  .btn-ember {
+    @apply btn-pill bg-ember text-white hover:bg-ember-dark disabled:cursor-not-allowed disabled:opacity-40;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .btn-outline {
+    @apply btn-pill border border-ink/15 bg-white text-ink hover:border-ink/30 hover:bg-ink/[0.03];
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-ink/10 bg-white px-4 py-2 text-sm font-medium text-ink/75 transition-colors hover:border-ink/25;
+  }
+
+  .chip-active {
+    @apply border-ink bg-ink text-white hover:border-ink hover:bg-ink;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-ink/[0.12] bg-white px-4 py-2.5 text-[15px] placeholder:text-ink/35 focus:border-ember/60 focus:outline-none focus:ring-2 focus:ring-ember/20;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink/70;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/45;
   }
 }
 
-.btn-pill {
-  @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors;
+/* ---- skeleton loader ---- */
+.skeleton {
+  @apply rounded-xl;
+  background: linear-gradient(100deg, rgba(23, 19, 16, 0.05) 30%, rgba(255, 255, 255, 0.8) 50%, rgba(23, 19, 16, 0.05) 70%);
+  background-size: 300% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
 }
 
-.btn-dark {
-  @apply btn-pill bg-ink text-white hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed;
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
 }
 
-.btn-ember {
-  @apply btn-pill bg-ember text-white hover:bg-ember-dark disabled:opacity-40 disabled:cursor-not-allowed;
+/* new ledger rows slide in */
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    background-color: rgba(47, 109, 79, 0.12);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    background-color: transparent;
+  }
+}
+.row-in {
+  animation: rowIn 0.9s ease-out;
 }
 
-.btn-outline {
-  @apply btn-pill border border-ink/15 text-ink bg-white hover:bg-sand-50;
-}
-
-.chip {
-  @apply inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-4 py-2 text-sm font-medium text-ink/80 transition-colors hover:border-ink/30 whitespace-nowrap;
-}
-
-.chip-active {
-  @apply bg-ink text-white border-ink;
-}
-
-.input {
-  @apply w-full min-w-0 rounded-xl2 border border-ink/15 bg-white px-4 py-2.5 text-[15px] placeholder:text-ink/35 focus:outline-none focus:ring-2 focus:ring-ember/40 focus:border-ember/50;
-}
-
-.label {
-  @apply block text-sm font-medium text-ink/70 mb-1.5;
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .row-in {
+    animation: none;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -140,4 +171,23 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(23, 19, 16, 0.15);
   border-radius: 999px;
+}
+
+/* sign-in scene: money flowing along the dashed lines, road moving */
+@keyframes si-flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.si-flow {
+  animation: si-flow 0.9s linear infinite;
+}
+.si-road {
+  animation: si-flow 0.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .si-flow,
+  .si-road {
+    animation: none;
+  }
 }

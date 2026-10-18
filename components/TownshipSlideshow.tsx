@@ -1,79 +1,121 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Pause, Play, ChevronLeft, ChevronRight } from "lucide-react";
-import TuckShopIllustration from "@/components/TuckShopIllustration";
+import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import clsx from "clsx";
+import { MapPin } from "lucide-react";
 import { TOWNSHIP_SLIDES } from "@/lib/townships";
+import TuckShopIllustration from "./TuckShopIllustration";
 
-export default function TownshipSlideshow() {
+const INTERVAL = 6000;
+
+/** Full-bleed, crossfading township photos with a slow zoom. Falls back to an illustration if a photo can't load. */
+export default function TownshipSlideshow({ children }: { children?: React.ReactNode }) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
-  const active = TOWNSHIP_SLIDES[index];
+  const [hovering, setHovering] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
+  const paused = hovering || userPaused;
+  const [failed, setFailed] = useState<Record<number, boolean>>({});
+  const reduce = useReducedMotion();
+  const n = TOWNSHIP_SLIDES.length;
 
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setPaused(true);
-    }
-  }, []);
+  const go = useCallback((d: number) => setIndex((i) => (i + d + n) % n), [n]);
 
   useEffect(() => {
     if (paused) return;
-    const timer = window.setInterval(() => setIndex((current) => (current + 1) % TOWNSHIP_SLIDES.length), 6000);
-    return () => window.clearInterval(timer);
-  }, [paused]);
+    const t = setInterval(() => go(1), INTERVAL);
+    return () => clearInterval(t);
+  }, [paused, go]);
 
-  function go(next: number) {
-    setIndex((next + TOWNSHIP_SLIDES.length) % TOWNSHIP_SLIDES.length);
-    setImageFailed(false);
-  }
+  // warm the browser cache for the next slide
+  useEffect(() => {
+    const next = TOWNSHIP_SLIDES[(index + 1) % n];
+    const img = new Image();
+    img.src = next.src;
+  }, [index, n]);
+
+  const slide = TOWNSHIP_SLIDES[index];
+  const allFailed = Object.keys(failed).length === n;
 
   return (
     <section
-      className="relative min-h-[320px] overflow-hidden rounded-3xl bg-ink"
-      aria-label="Township slideshow"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
-      }}
+      className="relative isolate overflow-hidden rounded-[2rem] bg-ink"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      aria-roledescription="carousel"
+      aria-label="Townships across South Africa"
     >
-      {!imageFailed ? (
-        <img
-          key={active.src}
-          src={active.src}
-          alt={`${active.township}, ${active.province}`}
-          className="absolute inset-0 h-full w-full animate-[township-zoom_6s_ease-in-out_forwards] object-cover"
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-sand-100 p-6">
-          <TuckShopIllustration className="max-h-full w-full" />
-        </div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/10" />
-      <div className="absolute bottom-0 left-0 right-0 flex flex-wrap items-end justify-between gap-3 p-5 text-white">
-        <div>
-          <p className="text-lg font-bold">{active.township}, {active.province}</p>
-          {!imageFailed ? (
-            <p className="mt-1 text-[10px] text-white/80">
-              Photo: {active.credit} · <a className="underline" href={active.sourceUrl} target="_blank" rel="noreferrer">{active.license} · source</a>
+      <div className="absolute inset-0 -z-10">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={index}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+          >
+            {failed[index] ? (
+              <div className="flex h-full w-full items-end justify-end bg-gradient-to-br from-ember via-[#d98a5f] to-leaf pr-[4%]">
+                <TuckShopIllustration className="hidden h-[78%] w-auto lg:block" />
+              </div>
+            ) : (
+              <motion.img
+                src={slide.src}
+                alt={`${slide.township}, ${slide.province}`}
+                className="h-full w-full object-cover"
+                initial={{ scale: 1.08 }}
+                animate={{ scale: reduce ? 1.08 : 1 }}
+                transition={{ duration: INTERVAL / 1000 + 1.5, ease: "linear" }}
+                onError={() => setFailed((f) => ({ ...f, [index]: true }))}
+                draggable={false}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+        {/* legibility: dark on the left where the text sits, clear on the right */}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/45 to-ink/5" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink/70 to-transparent" />
+      </div>
+
+      <div className="relative min-h-[520px] px-5 pb-40 pt-8 sm:px-10 sm:pb-24 sm:pt-14 lg:min-h-[580px]">{children}</div>
+
+      {/* caption + controls */}
+      <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 px-5 pb-4 sm:px-10 sm:pb-5">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4 }}
+            className="text-white"
+            aria-live="polite"
+          >
+            <p className="flex items-center gap-1.5 text-sm font-semibold">
+              <MapPin size={14} className="text-ember" /> {slide.township}, {slide.province}
             </p>
-          ) : <p className="mt-1 text-[10px] text-white/80">Illustration fallback · photo unavailable</p>}
-        </div>
-        <div className="flex items-center gap-1.5" aria-label={`Slide ${index + 1} of ${TOWNSHIP_SLIDES.length}`}>
-          <button type="button" onClick={() => go(index - 1)} className="rounded-full bg-black/35 p-2" aria-label="Previous township"><ChevronLeft size={16} /></button>
-          {TOWNSHIP_SLIDES.map((slide, slideIndex) => (
-            <button key={slide.township} type="button" onClick={() => go(slideIndex)} className={`h-2 rounded-full transition-all ${slideIndex === index ? "w-5 bg-white" : "w-2 bg-white/60"}`} aria-label={`Show ${slide.township}`} aria-current={slideIndex === index} />
-          ))}
-          <button type="button" onClick={() => go(index + 1)} className="rounded-full bg-black/35 p-2" aria-label="Next township"><ChevronRight size={16} /></button>
-          <button type="button" onClick={() => setPaused((value) => !value)} className="rounded-full bg-black/35 p-2" aria-label={paused ? "Play slideshow" : "Pause slideshow"}>
-            {paused ? <Play size={15} /> : <Pause size={15} />}
-          </button>
+            <p className="text-xs text-white/70">{slide.caption}</p>
+            {!failed[index] && !allFailed && (
+              <a href={slide.creditUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-white/45 underline-offset-2 hover:underline">
+                {slide.credit}
+              </a>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="flex items-center gap-1.5 pb-1">
+            {TOWNSHIP_SLIDES.map((s, i) => (
+              <button
+                key={s.src}
+                onClick={() => setIndex(i)}
+                aria-label={`Show ${s.township}`}
+                aria-current={i === index}
+                className={clsx("h-1.5 rounded-full transition-all", i === index ? "w-6 bg-ember" : "w-1.5 bg-white/40 hover:bg-white/70")}
+              />
+            ))}
         </div>
       </div>
-      <style jsx>{`@keyframes township-zoom { from { transform: scale(1); } to { transform: scale(1.08); } }`}</style>
     </section>
   );
 }

@@ -1,0 +1,13 @@
+# One-click deploy on Render: New → Blueprint → pick this repo.
+services:
+  - type: web
+    name: mzansiconnect
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ANTHROPIC_API_KEY
+        sync: false # optional — add it in the Render dashboard if you have one
