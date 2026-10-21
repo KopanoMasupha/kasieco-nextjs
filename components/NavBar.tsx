@@ -30,12 +30,14 @@ import { amountDue, dealsToPay, feesDue } from "@/lib/payments";
 import { formatCents } from "@/lib/pot";
 import { ADMIN_ROLE_LABEL } from "@/lib/types";
 import { startTour } from "@/lib/tour";
+import { useCart } from "@/lib/cart";
 
 type NavLink = { href: string; label: string; icon: any; exact?: boolean; match?: string[]; badge?: number; dot?: boolean; dataTour?: string };
 
 export default function NavBar() {
   const { state, dispatch } = useStore();
   const me = useMe();
+  const cart = useCart();
   const inbox = useInbox();
   const pathname = usePathname();
   const router = useRouter();
@@ -68,7 +70,7 @@ export default function NavBar() {
       { href: "/owner/stock", label: "My stock", icon: Boxes },
       { href: "/owner/funding", label: "Funding", icon: Landmark, dataTour: "nav-funding" },
       { href: "/owner/compliance", label: "Compliance", icon: ShieldCheck, dot: myShop && !isVerified(myShop), match: ["/owner/compliance", "/owner/learn", "/owner/training"] },
-      { href: "/owner/cart", label: "Cart", icon: ShoppingCart, dataTour: "nav-cart" },
+      { href: "/owner/cart", label: "Cart", icon: ShoppingCart, badge: cart.count || undefined, dataTour: "nav-cart" },
     ];
   if (me?.role === "admin")
     links = [

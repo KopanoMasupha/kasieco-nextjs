@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import clsx from "clsx";
 import { MapPin } from "lucide-react";
 import { TOWNSHIP_SLIDES } from "@/lib/townships";
@@ -13,13 +13,21 @@ const INTERVAL = 6000;
 export default function TownshipSlideshow({ children }: { children?: React.ReactNode }) {
   const [index, setIndex] = useState(0);
   const [hovering, setHovering] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
-  const paused = hovering || userPaused;
+  const [focused, setFocused] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const paused = hovering || focused || reduceMotion;
   const [failed, setFailed] = useState<Record<number, boolean>>({});
-  const reduce = useReducedMotion();
   const n = TOWNSHIP_SLIDES.length;
 
   const go = useCallback((d: number) => setIndex((i) => (i + d + n) % n), [n]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduceMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     if (paused) return;
@@ -40,8 +48,17 @@ export default function TownshipSlideshow({ children }: { children?: React.React
   return (
     <section
       className="relative isolate overflow-hidden rounded-[2rem] bg-ink"
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse") setHovering(true);
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") setHovering(false);
+      }}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(event) => {
+        const next = event.relatedTarget;
+        if (!(next instanceof Node) || !event.currentTarget.contains(next)) setFocused(false);
+      }}
       aria-roledescription="carousel"
       aria-label="Townships across South Africa"
     >
@@ -65,7 +82,7 @@ export default function TownshipSlideshow({ children }: { children?: React.React
                 alt={`${slide.township}, ${slide.province}`}
                 className="h-full w-full object-cover"
                 initial={{ scale: 1.08 }}
-                animate={{ scale: reduce ? 1.08 : 1 }}
+                animate={{ scale: reduceMotion ? 1.08 : 1 }}
                 transition={{ duration: INTERVAL / 1000 + 1.5, ease: "linear" }}
                 onError={() => setFailed((f) => ({ ...f, [index]: true }))}
                 draggable={false}
@@ -104,16 +121,18 @@ export default function TownshipSlideshow({ children }: { children?: React.React
           </motion.div>
         </AnimatePresence>
 
-        <div className="flex items-center gap-1.5 pb-1">
-            {TOWNSHIP_SLIDES.map((s, i) => (
-              <button
-                key={s.src}
-                onClick={() => setIndex(i)}
-                aria-label={`Show ${s.township}`}
-                aria-current={i === index}
-                className={clsx("h-1.5 rounded-full transition-all", i === index ? "w-6 bg-ember" : "w-1.5 bg-white/40 hover:bg-white/70")}
-              />
-            ))}
+        <div className="flex items-center gap-1 pb-1">
+          {TOWNSHIP_SLIDES.map((s, i) => (
+            <button
+              key={s.src}
+              onClick={() => setIndex(i)}
+              aria-label={`Show ${s.township}`}
+              aria-current={i === index}
+              className="flex h-11 w-11 items-center justify-center"
+            >
+              <span className={clsx("h-1.5 rounded-full transition-all", i === index ? "w-6 bg-ember" : "w-1.5 bg-white/40 hover:bg-white/70")} />
+            </button>
+          ))}
         </div>
       </div>
     </section>
