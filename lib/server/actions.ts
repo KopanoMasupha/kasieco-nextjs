@@ -13,6 +13,7 @@ import {
   PriceTier,
   DeliveryPrefs,
   ApprovalKind,
+  CourierPayer,
 } from "../types";
 
 export type ServerAction =
@@ -107,6 +108,11 @@ export type ServerAction =
     }
   | { type: "RESPOND_OFFER"; threadId: string; offerId: string; accept: boolean }
   | { type: "CONFIRM_HANDOVER"; threadId: string; shopId: string }
+  | { type: "BOOK_COURIER"; threadId: string; shopId: string; fromShopId: string; twoWay: boolean; payer: CourierPayer; day: string; window: string; goodsOut: string; goodsBack?: string }
+  | { type: "CANCEL_COURIER"; jobId: string; shopId: string }
+  | { type: "COURIER_ACCEPT"; jobId: string; driverId: string }
+  | { type: "COURIER_COLLECT"; jobId: string; driverId: string; leg: number }
+  | { type: "COURIER_DELIVER"; jobId: string; driverId: string; leg: number; code: string }
   // ---- training & compliance ----
   | { type: "REGISTER_TRAINING"; sessionId: string; shopId: string; shopName: string }
   | { type: "CANCEL_TRAINING_REGISTRATION"; sessionId: string; shopId: string }

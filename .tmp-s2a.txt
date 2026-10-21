@@ -1,0 +1,120 @@
+## 2. MzansiConnect helper chatbot
+
+A chat icon in the bottom-right corner of every page opens the **MzansiConnect helper**.
+
+- Matches questions against **20+ topics**: deals, payments, refunds, delivery, codes, exchange, transport, cart, verification, funding, fees, training and more.
+- Answers greetings in English, isiZulu, Sesotho and isiXhosa.
+- Says plainly when a feature doesn't exist yet. It never makes one up.
+- Shows 7 quick-question chips the first time it opens.
+- Answers come with buttons that jump to the right page.
+- Uses Claude for more natural answers when `ANTHROPIC_API_KEY` is set. Without the key, the built-in rules answer everything.
+- Works offline, in local data mode and in the prototype.
+
+| File | What it does |
+|---|---|
+| `lib/helpbot.ts` | Topics, keywords, answers |
+| `components/HelpBot.tsx` | The chat window |
+| `components/AppShell.tsx` | Shows the chatbot for every role |
+| `app/api/ai/chat/route.ts` | Optional Claude answers |
+
+To add a new topic, add one entry to the `INTENTS` list in `lib/helpbot.ts`:
+
+```ts
+{
+  id: "my-intent",
+  keywords: ["keyword1", "keyword2"],
+  answer: "Your answer here.",
+  buttons: [{ label: "Go there →", href: "/owner/somewhere" }],
+}
+```
+
+
+### The code
+
+**`lib/helpbot.ts`** (224 lines). Replace the whole file with this:
+
+```ts
+/**
+ * MzansiConnect helper: answers questions about how the platform works.
+ * Rule-based so it works offline and never invents features; when an
+ * ANTHROPIC_API_KEY is set, /api/ai/chat hands the same knowledge to Claude
+ * for more natural answers.
+ */
+
+export interface HelpLink {
+  label: string;
+  href: string;
+}
+
+interface Intent {
+  id: string;
+  keywords: string[];
+  answer: string;
+  links?: HelpLink[];
+}
+
+export const INTENTS: Intent[] = [
+  {
+    id: "deal",
+    keywords: ["deal", "bulk", "pot", "pool", "group buy", "buy together", "join", "price drop", "cheaper", "how much do i pay", "buy"],
+    answer:
+      "MzansiConnect partners with wholesalers who put up a bulk lot (for example 60 bales of maize meal). On 'Buy' you add the deals you want to your cart, then check out to reserve them all at once — it's free, you pay R0 today. The more shops reserve, the lower the price. When the whole lot is reserved, the price locks at the lowest tier and everyone pays that same final price within 48 hours, through TradeSafe. Then MzansiConnect orders it for all of you.",
+    links: [{ label: "See deals", href: "/owner/pools" }],
+  },
+  {
+    id: "wallet",
+    keywords: ["wallet", "top up", "topup", "top-up", "load money", "balance", "withdraw", "eft", "card", "cash", "pay", "payment", "bank", "tradesafe", "escrow"],
+    answer:
+      "There's no wallet to top up. You only pay when a deal you reserved is full: you get a message, then tap 'Pay with TradeSafe' and pay by Instant EFT, card, or cash at a shop till. TradeSafe — a licensed escrow company — holds the money in trust, not MzansiConnect. It's released to the wholesaler and driver only after the deal is approved and delivered. Everything you owe or paid is on the Payments page.",
+    links: [{ label: "Payments", href: "/owner/payments" }],
+  },
+  {
+    id: "refund",
+    keywords: ["refund", "money back", "not reached", "target", "minimum", "cancel", "lose my money", "safe"],
+    answer:
+      "If a deal doesn't fill up, it simply closes — you only reserved, so you never paid anything and there's nothing to refund. You pay only once it's full, at the final lowest price, so there are no price-drop refunds either. If a deal is ever cancelled after you paid, TradeSafe refunds you to the account you paid from (usually 1–3 working days). If you don't pay within 48 hours, your spot goes to the next shop on the waitlist — no money taken.",
+  },
+  {
+    id: "after-close",
+    keywords: ["what happens", "closed", "order placed", "confirm", "admin", "when will", "status", "track"],
+    answer:
+      "Every deal page shows a tracker with 7 steps: Filling up (shops reserve, free) → Payment due (the deal is full: everyone pays into TradeSafe within 48 hours) → Payments checked (MzansiConnect checks every payment) → Ordered (two admins approve paying the wholesaler from escrow) → Scheduled (you get a date, a time slot and a driver) → On the way → Delivered. You get a message at every step — tap the bell at the top.",
+    links: [{ label: "My messages", href: "/inbox" }],
+  },
+  {
+    id: "delivery-code",
+    keywords: ["code", "delivery code", "pin for delivery", "right person", "stolen", "wrong shop"],
+    answer:
+      "Every shop in a deal gets its own 4-digit delivery code on the deal page. When the driver arrives, count your stock first, then read the code to the driver. The driver types it in — the delivery only counts when the code matches, so stock can't be handed to the wrong person.",
+  },
+  {
+    id: "delivery",
+    keywords: ["delivery", "driver", "transport", "truck", "bakkie", "collect", "late", "time slot", "missed"],
+    answer:
+      "After the order is placed, MzansiConnect's planner groups shops by township (Mamelodi, Soshanguve, Ga-Rankuwa and so on), picks a vehicle big enough for the load, and gives every shop a 30-minute time slot inside its opening hours. You get a message when the driver collects the stock and when it's handed over. If the driver misses you, MzansiConnect rebooks a new time.",
+  },
+  {
+    id: "delivery-choices",
+    keywords: ["not there", "miss", "missed", "away", "choose day", "which day", "morning", "afternoon", "backup", "someone else", "i'll be there", "confirm", "re-delivery", "redelivery"],
+    answer:
+      "When you join a deal you choose the days you can receive stock (Mon–Sat), morning or afternoon, and what happens if nobody is there: the driver comes back later that day, leaves it at a partner shop you trust nearby, brings it on the next run, or you collect it at the wholesaler. You can name a backup person who gets their own code. When your delivery is scheduled, tap \"I'll be there\". If you confirm and then aren't there, a R30 re-delivery fee is added to your Payments page.",
+  },
+  {
+    id: "drop-point",
+    keywords: ["drop point", "partner shop", "neighbour", "keep stock", "hold stock", "earn"],
+    answer:
+      "A drop point is a verified shop that keeps a neighbour's missed delivery for up to 72 hours. The owner chooses it in advance, the driver leaves the sealed stock there with the drop point's code, and the owner collects it with their own delivery code. The drop point earns R5 per unit. Turn it on under 'Drop point' in the menu.",
+    links: [{ label: "Drop point", href: "/owner/partner" }],
+  },
+  {
+    id: "two-admins",
+    keywords: ["admin", "approve", "approval", "two-person", "who checks", "fraud", "steal"],
+    answer:
+      "MzansiConnect has two admins: one for deals and money, one for deliveries and drivers. Money only leaves a deal (paying the wholesaler, or refunds when a deal is cancelled) when one admin asks and a different admin approves. Every approval is recorded with names and times.",
+  },
+  {
+    id: "driver-help",
+    keywords: ["accept trip", "my trips", "i am a driver", "load list", "can't deliver"],
+    answer:
+      "Drivers: open 'My trips', tap 'Accept this trip', then 'I've collected the stock' at the wholesaler. At each shop, count the stock with the owner, ask for their 4-digit code and type it in. If nobody's there, tap 'I can't deliver here' and pick a reason — MzansiConnect will rebook. You're paid automatically when every stop on the trip is delivered.",
+    links: [{ label: "My trips", href: "/driver" }],

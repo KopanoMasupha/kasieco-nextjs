@@ -21,6 +21,7 @@ import {
   Trip,
   Message,
   Approval,
+  CourierJob,
 } from "../types";
 
 export interface SharedDB {
@@ -38,6 +39,7 @@ export interface SharedDB {
   approvals: Approval[];
   listings: StockListing[];
   threads: ExchangeThread[];
+  courierJobs: CourierJob[];
   trainingSessions: TrainingSession[];
   verificationRequests: VerificationRequest[];
   certificates: Certificate[];
@@ -48,7 +50,7 @@ export interface SharedDB {
 }
 
 // Bump when the shape changes so an old data/db.json is replaced, not misread.
-export const DB_VERSION = 8;
+export const DB_VERSION = 9;
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
@@ -80,6 +82,11 @@ export function readDB(): SharedDB {
   if (cache) return cache;
   try {
     const parsed = JSON.parse(fs.readFileSync(DB_PATH, "utf-8")) as SharedDB;
+    if (parsed.version === DB_VERSION - 1) {
+      const migrated = { ...parsed, version: DB_VERSION, courierJobs: parsed.courierJobs ?? [] };
+      writeDB(migrated);
+      return migrated;
+    }
     if (parsed.version !== DB_VERSION) throw new Error("old db shape");
     cache = parsed;
     return cache;

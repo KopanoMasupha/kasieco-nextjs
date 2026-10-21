@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import NavBar from "./NavBar";
 import HelpBot from "./HelpBot";
 import { PageSkeleton } from "./Skeleton";
-import SalesPop from "./shop/SalesPop";
+import Tour from "./onboarding/Tour";
 import { useStore, useMe } from "@/lib/store";
 import SignIn, { HOME_FOR } from "./SignIn";
 import { UserRole } from "@/lib/types";
@@ -57,7 +57,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </>
       )}
       <HelpBot />
-      {me?.role === "owner" && !isLanding && <SalesPop />}
+      {me?.role === "owner" && !isLanding && <Tour />}
     </>
   );
 }

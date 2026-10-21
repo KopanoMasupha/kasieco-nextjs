@@ -12,14 +12,17 @@ The deal works like this:
 
 The prototype also covers:
 - shop registration with a required compliance quiz;
+- a first-visit, 14-step owner tour with Thuli, replayable from the Home page;
+- a "Due now" summary on the owner dashboard, with direct payment links for full deals;
 - a stock dashboard;
 - a funding marketplace;
 - a "willing buyer & seller" exchange between shops;
+- shop-to-shop courier bookings with shared fees, delivery codes and driver payouts;
 - a public shop finder;
-- a help bot;
+- a help bot with suggested questions and links into the app;
 - full admin and driver apps.
 
-> This is a hackathon prototype. The money maths, every business rule and the step order are real and tested (`npm test`, 110 checks). TradeSafe payments, SMS and road routing are **simulated**. See [What's real and what's simulated](#18-whats-real-and-whats-simulated).
+> This is a hackathon prototype. The money maths, every business rule and the step order are real and tested (`npm test`, 139 checks). TradeSafe payments, SMS and road routing are **simulated**. See [What's real and what's simulated](#18-whats-real-and-whats-simulated).
 
 ---
 
@@ -293,7 +296,7 @@ export async function askClaude(system: string, messages: { role: "user" | "assi
 | `npm run dev` | Dev server at http://localhost:3000 with hot reload |
 | `npm run build` | Production build (type-checks every page) |
 | `npm start` | Serves the production build (`npm start -- -p 4000` for another port) |
-| `npm test` | Runs 110 end-to-end checks of the business rules. No server or browser needed |
+| `npm test` | Runs 139 end-to-end checks of the business rules. No server or browser needed |
 | `npm run build:prototype` | Builds `prototype/dist/mzansiconnect-prototype.html`, the whole app in one offline file |
 | `npm run lint` | Next.js ESLint |
 
@@ -350,6 +353,7 @@ mzansiconnect/
 │   │   ├── pools/[id]/page.tsx       # one deal: DealPriceHero, pay card, tracker, delivery
 │   │   ├── payments/page.tsx         # to pay, in escrow, history (replaces the old wallet)
 │   │   ├── partner/page.tsx          # drop point: hand-overs and earnings
+│   │   ├── exchange/[threadId]/page.tsx # shop-to-shop messages, offers and courier booking
 │   │   ├── stock/ exchange/ funding/ compliance/ learn/ training/
 │   ├── admin/
 │   │   ├── page.tsx                  # to-dos, deals by step, TradeSafe reconciliation
@@ -358,7 +362,7 @@ mzansiconnect/
 │   │   ├── deals/[id]/page.tsx       # control room: payments → approve → plan → book
 │   │   ├── drivers/page.tsx
 │   │   └── team/page.tsx             # two-admin approvals record
-│   ├── driver/                       # trips and stop-by-stop delivery
+│   ├── driver/                       # deal trips and shop-to-shop courier runs
 │   ├── verify/page.tsx               # government verifier portal
 │   ├── inbox/page.tsx                # messages for everyone
 │   └── api/
@@ -371,7 +375,8 @@ mzansiconnect/
 │   ├── pay/       DealPaymentCard, TradeSafeCheckout
 │   ├── pot/       PoolCard, PotMeter, MemberTable, LedgerFeed, LedgerProof
 │   ├── admin/     ApprovalPanel, DeliveryPlanner, RouteSketch, MessageAssistant
-│   ├── driver/    StopCard
+│   ├── exchange/  CourierCard
+│   ├── driver/    StopCard, CourierRunCard
 │   ├── maps/      ShopFinderMap, LocationPicker, leafletIcons
 │   ├── AppShell.tsx  NavBar.tsx  SignIn.tsx  SignInScene.tsx  RegistrationQuiz.tsx
 │   ├── StockChart.tsx  HelpBot.tsx  Certificate.tsx  TownshipSlideshow.tsx  Skeleton.tsx …
@@ -383,6 +388,7 @@ mzansiconnect/
 │   ├── reconcile.ts      # platform-wide "every rand accounted for" check
 │   ├── planner.ts        # delivery planner: groups, vehicles, stop order, time slots
 │   ├── delivery.ts       # drop points nearby, delivery-choice summaries
+│   ├── courier.ts        # shop-to-shop distance, quote and driver selection
 │   ├── store.tsx         # client state, dispatch(), useMe(), useMyShop(), live refresh
 │   ├── seed.ts           # demo shops, wholesalers, drivers, accounts, deal templates
 │   ├── helpbot.ts  messageDrafts.ts  compliance.ts  funding.ts  exchange.ts  geo.ts …
@@ -393,12 +399,24 @@ mzansiconnect/
 │       ├── seedDb.ts     # builds demo data by replaying actions
 │       └── claude.ts     # optional Claude call
 │
-├── scripts/test-flow.ts  # 110 end-to-end checks (npm test)
+├── scripts/test-flow.ts  # 139 end-to-end checks (npm test)
 ├── prototype/            # single-file offline build (entry.tsx, shims/, build.mjs)
 ├── data/db.json          # created at runtime (git-ignored)
 ├── render.yaml           # one-click Render deploy
 └── .env.example
 ```
+
+### Owner dashboard and guided tour
+
+The owner Home page shows the amount due now, deal payment deadlines, TradeSafe escrow and stock information. A payment row opens checkout for that deal. New owners see a guided tour with Thuli on their first Home visit; **Show me around** replays it later.
+
+### MzansiConnect helper
+
+The floating helper opens from any role's app shell. It offers suggested questions, answers from the built-in knowledge base, and links to relevant pages. When `ANTHROPIC_API_KEY` is configured, the chat route can use Claude; otherwise it uses the local knowledge base.
+
+### Admin dashboard layout
+
+The admin Overview prioritizes actionable items in **Needs you**, then shows deals by workflow step and TradeSafe reconciliation. Pipeline rows keep long labels and product names from pushing the count badges out of alignment, including on narrow screens.
 
 ---
 
@@ -638,9 +656,11 @@ export const PAYMENT_WINDOW_HOURS = 48;
 
 export type PaymentTxType =
   | "deal-payment" // shop → TradeSafe escrow, its share of a full deal
-  | "fee-payment"  // shop → TradeSafe, a drop-point or re-delivery fee
+  | "fee-payment"  // shop → TradeSafe, a drop-point, re-delivery or courier fee
   | "refund"       // TradeSafe escrow → the shop's bank, because the deal was cancelled
-  | "fee-payout";  // TradeSafe → a drop-point shop's bank, its R5-a-unit earnings
+  | "fee-payout"   // TradeSafe → a drop-point shop's bank, its R5-a-unit earnings
+  | "courier-refund" // TradeSafe → a shop, a cancelled courier booking's paid share
+  | "courier-payout"; // TradeSafe → the courier driver's bank after delivery
 
 export interface PaymentTx {
   id: string;
@@ -655,15 +675,16 @@ export interface PaymentTx {
   createdAt: string;
 }
 
-/** A small charge an owner owes after a missed delivery, paid through TradeSafe. */
+/** A charge an owner owes for a drop point, re-delivery or courier run. */
 export interface Fee {
   id: string;
-  kind: "drop-point" | "redelivery"; // R5 per unit to the drop point, or R30 re-delivery
+  kind: "drop-point" | "redelivery" | "courier";
   shopId: string;
-  dealId: string;
+  dealId?: string;
+  courierJobId?: string;
   amountCents: number;
   toShopId?: string; // the drop point that earns it
-  status: "due" | "paid";
+  status: "due" | "paid" | "cancelled";
   // …
 }
 ```
@@ -673,8 +694,8 @@ export interface Fee {
 The admin Overview shows **"Balanced — matches TradeSafe's records"** only when this holds:
 
 ```
-collected (all shop payments) = in escrow (all pots) + released
-released = wholesalers + drivers + MzansiConnect fee + refunds + drop-point payouts + re-delivery fees
+collected (deal and fee payments) = in escrow (deal pots and active courier fees) + released
+released = wholesalers + drivers + MzansiConnect fee + deal and courier refunds + drop-point payouts + re-delivery fees
 ```
 
 ```ts
@@ -682,13 +703,19 @@ export function reconcile(payments: PaymentTx[], pools: Pool[], fees: Fee[]): Re
   const sum = (f: (t: PaymentTx) => boolean) => payments.filter(f).reduce((s, t) => s + t.amountCents, 0);
   const collected = sum((t) => t.type === "deal-payment" || t.type === "fee-payment");
   const refunded = sum((t) => t.type === "refund");
+  const courierRefunds = sum((t) => t.type === "courier-refund");
+  const courierDriverPayouts = sum((t) => t.type === "courier-payout");
   const toDropPoints = sum((t) => t.type === "fee-payout");
+  const courierHeld = sum((t) => t.type === "fee-payment" && fees.find((f) => f.id === t.feeId)?.kind === "courier") - courierRefunds - courierDriverPayouts;
   const redeliveryFees = sum((t) => t.type === "fee-payment" && fees.find((f) => f.id === t.feeId)?.kind === "redelivery");
   const out = (type: string) => pools.reduce((s, p) => s + p.ledger.filter((t) => t.type === type).reduce((a, t) => a + t.amountCents, 0), 0);
-  const inEscrow = pools.reduce((s, p) => s + potBalance(p.ledger), 0);
-  const released = out("payout-supplier") + out("payout-driver") + out("payout-platform") + refunded + toDropPoints + redeliveryFees;
+  const inEscrow = pools.reduce((s, p) => s + potBalance(p.ledger), 0) + courierHeld;
+  const toWholesalers = out("payout-supplier");
+  const toDrivers = out("payout-driver") + courierDriverPayouts;
+  const platform = out("payout-platform");
+  const released = toWholesalers + toDrivers + platform + refunded + courierRefunds + toDropPoints + redeliveryFees;
   const potsMatch = out("contribution") === sum((t) => t.type === "deal-payment") && out("refund") === refunded;
-  return { collected, inEscrow, released, potsMatch, ok: potsMatch && collected === inEscrow + released, /* … */ };
+  return { collected, inEscrow, toWholesalers, toDrivers, fees: platform, refunded, courierRefunds, toDropPoints, courierDriverPayouts, redeliveryFees, released, potsMatch, ok: potsMatch && collected === inEscrow + released };
 }
 ```
 
@@ -697,11 +724,19 @@ export function reconcile(payments: PaymentTx[], pools: Pool[], fees: Fee[]): Re
 | Function | Returns |
 |---|---|
 | `dealsToPay(pools, shopId)` | Full deals this shop still owes money on |
-| `feesDue(fees, shopId)` | Unpaid drop-point and re-delivery fees |
+| `feesDue(fees, shopId)` | Unpaid drop-point, re-delivery and transport fees |
 | `amountDue(pools, fees, shopId)` | The total "Due now" figure |
 | `heldInEscrow(pools, shopId)` | What this shop has in escrow right now |
 | `earnedAsDropPoint(payments, shopId)` | Drop-point earnings paid out by TradeSafe |
 | `hoursLeft(iso)`, `dueText(iso)` | Countdown text, e.g. "31 h left" |
+
+### Shop-to-shop exchange transport
+
+After an offer is accepted in Willing buyer & seller, either participating shop can book a driver for a one-way delivery or a two-way swap. The booking records the route, day, time window and goods on each leg. The nearest available driver is assigned after all fee shares are paid.
+
+The fee is R40 to call out plus R9 per estimated road kilometre, with a R50 minimum, rounded up to the nearest R5 and capped at 60 km. A two-way swap multiplies the estimate by 1.6. The booking shop can pay, ask the other shop to pay, or split the fee equally. Fees are held by TradeSafe until each receiving shop confirms hand-over with its four-digit code. Either shop can cancel before collection; any paid shares are refunded. Once a driver collects the goods, the run cannot be cancelled.
+
+The reducer enforces booking eligibility, fee payment, driver assignment, collection order and delivery codes. These payment and routing effects are simulated in this prototype.
 
 ---
 
@@ -711,11 +746,11 @@ export function reconcile(payments: PaymentTx[], pools: Pool[], fees: Fee[]): Re
 
 | # | Status | Label | Who acts | Action(s) |
 |---|---|---|---|---|
-| 1 | `open` | Joining | Owners reserve | `JOIN_DEAL` |
-| 2 | `target-reached` | Full · pay | Owners pay within 48 h; admin releases unpaid spots | `PAY_DEAL`, `ADMIN_RELEASE_UNPAID` |
-| 3 | `payment-confirmed` | Paid | Admin checks | `ADMIN_CONFIRM_PAYMENTS` |
+| 1 | `open` | Filling up | Owners reserve | `JOIN_DEAL` |
+| 2 | `target-reached` | Payment due | Owners pay within 48 h; admin releases unpaid spots | `PAY_DEAL`, `ADMIN_RELEASE_UNPAID` |
+| 3 | `payment-confirmed` | Payments checked | Admin checks | `ADMIN_CONFIRM_PAYMENTS` |
 | 4 | `ordered` | Ordered | Admin asks, a **different** admin approves | `ADMIN_REQUEST_APPROVAL`, `ADMIN_DECIDE_APPROVAL` |
-| 5 | `scheduled` | Booked | Admin books drivers from the planner | `ADMIN_ASSIGN_TRIPS` |
+| 5 | `scheduled` | Scheduled | Admin books drivers from the planner | `ADMIN_ASSIGN_TRIPS` |
 | 6 | `out-for-delivery` | On the way | Driver accepts, collects, delivers | `DRIVER_ACCEPT`, `DRIVER_COLLECT`, `DRIVER_DELIVER` |
 | 7 | `delivered` | Delivered | Automatic after the last stop | — |
 | — | `cancelled` | — | Admin (two admins if money was paid) | `ADMIN_REQUEST_APPROVAL` (`cancel-deal`) |
@@ -745,7 +780,8 @@ case "ADMIN_CONFIRM_PAYMENTS": {
 | Admin | `ADMIN_CREATE_DEAL`, `ADMIN_CONFIRM_PAYMENTS`, `ADMIN_RELEASE_UNPAID`, `ADMIN_REQUEST_APPROVAL`, `ADMIN_DECIDE_APPROVAL`, `ADMIN_ASSIGN_TRIPS`, `ADMIN_REBOOK`, `ADMIN_MARK_COLLECTED` |
 | Drivers | `DRIVER_ACCEPT`, `DRIVER_COLLECT`, `DRIVER_DELIVER`, `DRIVER_MISSED`, `DRIVER_LEAVE_AT_PARTNER` |
 | Messages | `SEND_MESSAGES`, `MARK_READ` |
-| Exchange | `CREATE_LISTING`, `START_THREAD`, `SEND_MESSAGE`, `SEND_OFFER`, `RESPOND_OFFER`, `CONFIRM_HANDOVER` |
+| Exchange | `CREATE_LISTING`, `START_THREAD`, `SEND_MESSAGE`, `SEND_OFFER`, `RESPOND_OFFER`, `CONFIRM_HANDOVER`, `BOOK_COURIER`, `CANCEL_COURIER` |
+| Shop-to-shop drivers | `COURIER_ACCEPT`, `COURIER_COLLECT`, `COURIER_DELIVER` |
 | Compliance & funding | `SUBMIT_VERIFICATION_DOCS`, `DECIDE_VERIFICATION`, `COMPLETE_COURSE`, `REGISTER_TRAINING`, `MARK_ATTENDANCE`, `POST_FUNDING`, `SET_FUNDING_INTEREST`, `SAVE_FUNDING_PROFILE`, … |
 | **Demo only** | `SIMULATE_JOIN`, `SIMULATE_FILL`, `SIMULATE_PAY`, `SIMULATE_DEADLINE`, `RESET_DEMO` |
 
@@ -979,7 +1015,7 @@ The `.claude/skills/ui-ux-pro-max` folder holds a UI/UX design skill used while 
 npm test
 # …
 # PASS every deal passes the ledger proof
-# 110 passed, 0 failed
+# 139 passed, 0 failed
 ```
 
 `scripts/test-flow.ts` imports the reducer directly and plays a whole season of deals, so no server or browser is needed. The checks cover:
@@ -992,6 +1028,7 @@ npm test
 - **Payment window:** release refused while time is left; unpaid shops dropped; waitlist promoted; deal reopens if short.
 - **Admin:** confirm refused while anyone owes; step order; two-admin rule (can't approve your own request); wholesaler paid units × final price.
 - **Delivery:** overloaded vehicles refused; delivery codes; drop points (2 km, capacity, codes); R5/unit and R30 fees paid through TradeSafe; drivers paid per stop.
+- **Shop-to-shop transport:** accepted offer required; only participants can book; Sunday and distance limits; split fees; driver assignment after payment; collect-before-deliver order; four-digit hand-over codes; cancellation refunds; driver payout.
 - **Cancel:** with R0 paid it closes without a second admin; otherwise refunds are exact and the pot ends at R0.
 - **End:** every pot is R0 and every rand collected is accounted for.
 
@@ -1006,6 +1043,7 @@ npm test
 - the two-admin rule;
 - registration only after passing the quiz;
 - delivery codes, vehicle limits, drop-point rules and per-stop driver pay;
+- shop-to-shop transport eligibility, payment splits, delivery codes, cancellation refunds and driver pay;
 - messages and inboxes;
 - sign-in for every role;
 - data that survives restarts.

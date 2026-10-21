@@ -1,0 +1,71 @@
+
+      {holding.length > 0 && (
+        <Link href="/owner/partner" className="card flex items-center gap-4 border-leaf/30 p-4 hover:shadow-lg">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-leaf/10 text-leaf">
+            <Store size={20} />
+          </span>
+          <span className="min-w-0 flex-1 text-sm">
+            <span className="block font-semibold text-ink">Holding stock for {holding.length} neighbour{holding.length === 1 ? "" : "s"}</span>
+            <span className="text-ink/55">Hand over with their code.</span>
+          </span>
+          <ArrowRight size={16} className="text-ink/30" />
+        </Link>
+      )}
+
+      <div data-tour="stock">
+        <StockChart shopId={shop.id} />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* ---------- BUY ---------- */}
+        <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card flex flex-col p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ember text-white">
+                <ShoppingCart size={20} />
+              </span>
+              <div>
+                <h2 className="text-lg font-bold text-ink">Buy</h2>
+              </div>
+            </div>
+            <Link href="/owner/pools" className="btn-dark px-3.5 py-2 text-xs">
+              All deals
+            </Link>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-xl2 bg-sand-50 p-3">
+              <p className="text-xs text-ink/45">Your deals</p>
+              <p className="num font-display text-2xl font-bold text-ink">{joinedOpen.length + inProgress.length}</p>
+            </div>
+            <div className="rounded-xl2 bg-leaf/10 p-3">
+              <p className="text-xs text-leaf/80">You save</p>
+              <p className="num font-display text-2xl font-bold text-leaf">{formatCents(savings)}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex-1 space-y-3">
+            {inProgress.length > 0 && <p className="eyebrow">On the way</p>}
+            {inProgress.slice(0, 2).map((p) => (
+              <PoolCard key={p.id} pool={p} myShopId={shop.id} compact />
+            ))}
+            {joinedOpen.length > 0 && <p className="eyebrow">Filling up</p>}
+            {joinedOpen.slice(0, 2).map((p) => (
+              <PoolCard key={p.id} pool={p} myShopId={shop.id} compact />
+            ))}
+            {notJoined.length > 0 && <p className="eyebrow">New</p>}
+            {notJoined.slice(0, 2).map((p) => (
+              <PoolCard key={p.id} pool={p} myShopId={shop.id} compact />
+            ))}
+            {openPools.length === 0 && inProgress.length === 0 && <p className="text-sm text-ink/45">No open deals right now.</p>}
+          </div>
+
+        </motion.section>
+
+        {/* ---------- EXCHANGE ---------- */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06 }}
+          className="card flex flex-col p-6"
+        >

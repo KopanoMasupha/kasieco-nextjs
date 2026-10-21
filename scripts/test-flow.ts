@@ -15,9 +15,12 @@ import { buildSeed } from "../lib/server/seedDb";
 import { reduce } from "../lib/server/reducer";
 import { publicState, SharedDB } from "../lib/server/db";
 import { ServerAction } from "../lib/server/actions";
+import { COURIER_WINDOWS } from "../lib/types";
 import { auditPot, potBalance, quoteJoin, totalQtyOf, memberPositions, goodsTotal, formatCents } from "../lib/pot";
+import { amountDue } from "../lib/payments";
 import { reconcile } from "../lib/reconcile";
 import { planDelivery } from "../lib/planner";
+import { courierQuote, roadKm } from "../lib/courier";
 
 let db: SharedDB = buildSeed();
 let fails = 0;
@@ -291,6 +294,65 @@ console.log("\n— Ratings and views (real social proof) —");
   check("opening a deal records a real view", viewer.id in deal(open.id).views);
   check("reserving counts as viewing", open.commitments.every((c) => c.shopId in deal(open.id).views));
   db = saved;
+}
+
+console.log("\n— Shop-to-shop transport —");
+{
+  const verified = db.shops.filter((s) => s.verificationStatus === "verified");
+  const a = verified[0];
+  const b = verified.filter((s) => s.id !== a.id).sort((x, y) => roadKm(a, x) - roadKm(a, y))[0];
+  const listingId = db.listings[0]?.id ?? "l-test";
+  const threadId = "th-courier-test";
+  act({ type: "START_THREAD", thread: { id: threadId, listingId, shopAId: a.id, shopBId: b.id, messages: [], offers: [], confirmedBy: [], status: "open", createdAt: new Date().toISOString() } });
+  const day = (() => { const d = new Date(); d.setDate(d.getDate() + 1); if (d.getDay() === 0) d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); })();
+  const book = (extra: Partial<Extract<ServerAction, { type: "BOOK_COURIER" }>> = {}) =>
+    act({ type: "BOOK_COURIER", threadId, shopId: b.id, fromShopId: b.id, twoWay: true, payer: "split", day, window: COURIER_WINDOWS[1], goodsOut: "4 × Coca-Cola 2L", goodsBack: "2 × Maize meal 10kg", ...extra });
+  check("can't book transport before an offer is accepted", !!book().error);
+  act({ type: "SEND_OFFER", threadId, fromShopId: b.id, offerGive: "4 × Coca-Cola 2L", offerReceive: "2 × Maize meal 10kg", cashAdjustment: 0 });
+  const offer = db.threads.find((t) => t.id === threadId)!.offers[0];
+  act({ type: "RESPOND_OFFER", threadId, offerId: offer.id, accept: true });
+  check("an outsider can't book transport", !!act({ type: "BOOK_COURIER", threadId, shopId: verified.find((s) => s.id !== a.id && s.id !== b.id)!.id, fromShopId: b.id, twoWay: false, payer: "me", day, window: COURIER_WINDOWS[0], goodsOut: "x" }).error);
+  check("no runs on Sundays", !!book({ day: (() => { const d = new Date(); d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7)); return d.toISOString().slice(0, 10); })() }).error);
+  const res = book();
+  const job = () => db.courierJobs.find((j) => j.id === res.jobId)!;
+  const km = roadKm(b, a);
+  check("booking quotes the fee by distance, both ways", !res.error && job().feeCents === courierQuote(km, true).feeCents && job().legs.length === 2, `${km} km → ${formatCents(job().feeCents)}`);
+  check("only one live booking per exchange", !!book().error);
+  const shares = db.fees.filter((f) => f.courierJobId === res.jobId);
+  check("split 50/50 gives each shop a share that adds up", shares.length === 2 && shares.reduce((n, f) => n + f.amountCents, 0) === job().feeCents);
+  check("each share shows up in what the shop owes", shares.every((f) => amountDue(db.pools, db.fees, f.shopId) >= f.amountCents));
+  check("the driver can't accept before the fee is paid", !!act({ type: "COURIER_ACCEPT", jobId: res.jobId, driverId: job().driverId }).error);
+  act({ type: "PAY_FEE", feeId: shares[0].id, shopId: shares[0].shopId, method: "eft" });
+  check("still waiting while one share is unpaid", job().status === "awaiting-payment");
+  const paid = act({ type: "PAY_FEE", feeId: shares[1].id, shopId: shares[1].shopId, method: "card" });
+  check("both shares paid: the driver is booked and told", paid.booked === true && job().status === "assigned" && db.messages.some((m) => m.toRole === "driver" && m.toId === job().driverId && /shop-to-shop run/.test(m.text)));
+  const driverId = job().driverId;
+  check("another driver can't take the run", !!act({ type: "COURIER_ACCEPT", jobId: res.jobId, driverId: db.drivers.find((d) => d.id !== driverId)!.id }).error);
+  act({ type: "COURIER_ACCEPT", jobId: res.jobId, driverId });
+  check("can't deliver before collecting", !!act({ type: "COURIER_DELIVER", jobId: res.jobId, driverId, leg: 0, code: job().legs[0].code }).error);
+  act({ type: "COURIER_COLLECT", jobId: res.jobId, driverId, leg: 0 });
+  check("can't collect the return load before the first drop", !!act({ type: "COURIER_COLLECT", jobId: res.jobId, driverId, leg: 1 }).error);
+  check("a wrong code doesn't hand over", !!act({ type: "COURIER_DELIVER", jobId: res.jobId, driverId, leg: 0, code: job().legs[0].code === "0000" ? "1111" : "0000" }).error);
+  check("can't cancel once the goods are on the vehicle", !!act({ type: "CANCEL_COURIER", jobId: res.jobId, shopId: a.id }).error);
+  act({ type: "COURIER_DELIVER", jobId: res.jobId, driverId, leg: 0, code: job().legs[0].code });
+  check("the receiver's code confirms its side of the exchange", db.threads.find((t) => t.id === threadId)!.confirmedBy.includes(a.id) && job().status === "on-the-way");
+  act({ type: "COURIER_COLLECT", jobId: res.jobId, driverId, leg: 1 });
+  act({ type: "COURIER_DELIVER", jobId: res.jobId, driverId, leg: 1, code: job().legs[1].code });
+  check("both legs delivered: exchange completed", job().status === "delivered" && db.threads.find((t) => t.id === threadId)!.status === "completed");
+  check("the driver is paid the whole fee by TradeSafe", db.payments.some((t) => t.type === "courier-payout" && t.courierJobId === res.jobId && t.amountCents === job().feeCents && t.driverId === driverId));
+
+  const c = verified.filter((s) => s.id !== a.id && s.id !== b.id).sort((x, y) => roadKm(a, x) - roadKm(a, y))[0];
+  const secondThreadId = "th-courier-cancel";
+  act({ type: "START_THREAD", thread: { id: secondThreadId, listingId, shopAId: a.id, shopBId: c.id, messages: [], offers: [], confirmedBy: [], status: "open", createdAt: new Date().toISOString() } });
+  act({ type: "SEND_OFFER", threadId: secondThreadId, fromShopId: a.id, offerGive: "Cash only", offerReceive: "6 × Sugar 2kg", cashAdjustment: 120 });
+  act({ type: "RESPOND_OFFER", threadId: secondThreadId, offerId: db.threads.find((t) => t.id === secondThreadId)!.offers[0].id, accept: true });
+  const second = act({ type: "BOOK_COURIER", threadId: secondThreadId, shopId: a.id, fromShopId: c.id, twoWay: false, payer: "me", day, window: COURIER_WINDOWS[0], goodsOut: "6 × Sugar 2kg" });
+  const fee = db.fees.find((f) => f.courierJobId === second.jobId)!;
+  check("'I pay' puts the whole fee on the booking shop", !second.error && fee.shopId === a.id && fee.amountCents === courierQuote(roadKm(c, a), false).feeCents);
+  act({ type: "PAY_FEE", feeId: fee.id, shopId: a.id, method: "eft" });
+  const cancelled = act({ type: "CANCEL_COURIER", jobId: second.jobId, shopId: c.id });
+  check("cancelling before collection refunds what was paid", !cancelled.error && cancelled.refunds === 1 && db.payments.some((t) => t.type === "courier-refund" && t.courierJobId === second.jobId && t.amountCents === fee.amountCents));
+  check("after a cancel the exchange can book again", !act({ type: "BOOK_COURIER", threadId: secondThreadId, shopId: a.id, fromShopId: c.id, twoWay: false, payer: "them", day, window: COURIER_WINDOWS[2], goodsOut: "6 × Sugar 2kg" }).error);
 }
 
 console.log("\n— Reconcile with TradeSafe —");

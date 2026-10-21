@@ -116,6 +116,7 @@ export function buildSeed(): SharedDB {
     approvals: [],
     listings: SEED_LISTINGS,
     threads: SEED_THREADS,
+    courierJobs: [],
     trainingSessions: SEED_TRAINING_SESSIONS,
     verificationRequests: SEED_VERIFICATION_REQUESTS,
     certificates: SEED_CERTIFICATES,

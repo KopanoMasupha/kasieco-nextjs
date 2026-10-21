@@ -1,0 +1,65 @@
+            <div className="flex flex-wrap gap-1 mt-1">
+              {badges.map((b) => (
+                <span key={b.label} className={clsx("rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white", b.tone === "ember" ? "bg-ember" : b.tone === "leaf" ? "bg-leaf" : "bg-ink")}>
+                  {b.label}
+                </span>
+              ))}
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/5">
+              <div className="h-full rounded-full bg-ember transition-all" style={{ width: `${Math.min(100, (qty / pool.minQty) * 100)}%` }} />
+            </div>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink/45">
+              <span className="flex items-center gap-1">
+                <Users size={11} /> {pool.commitments.length} in · <span className={clsx(left / pool.minQty <= 0.35 && "font-semibold text-ember-dark")}>{left} left</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={11} /> {closesIn(pool.closesAt)}
+              </span>
+            </p>
+          </>
+        ) : (
+          <p className="mt-1.5 inline-flex rounded-full bg-ink/5 px-2.5 py-1 text-xs font-semibold text-ink/70">{pool.status === "cancelled" ? "Cancelled · refunded" : step?.label}</p>
+        )}
+      </div>
+      <ArrowRight size={16} className="mt-1 shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5" />
+    </Link>
+  );
+}
+```
+
+---
+
+## 5. Tests up to 139 and README updated
+
+- **139 automated checks**, up from 110. All pass.
+- Run them with `npm test` or `npx tsx scripts/test-flow.ts`. Plain `node` gives `ERR_MODULE_NOT_FOUND`.
+- `README.md` has new sections on the chatbot, the Due now box and the admin layout fixes, and every test count now says 139.
+
+
+---
+
+## 6. Tastic rice photo
+
+Rice 10 kg deals now show a real **Tastic Long Grain Parboiled White Rice 10 kg** bag instead of the drawn picture.
+
+- New image: `public/products/rice-10kg.jpg`
+- New line in `lib/productPhotos.ts`:
+
+```ts
+{ kind: "rice", size: "10kg", file: "rice-10kg.jpg", alt: "Tastic Long Grain Parboiled White Rice 10 kg" },
+```
+
+
+### The code
+
+**`lib/productPhotos.ts`** (26 lines). Replace the whole file with this:
+
+```ts
+/**
+ * Real product photos (in /public/products). A deal or shelf item gets the
+ * photo of the same kind of product in the same pack size; if that size isn't
+ * here, the same kind in another size. Anything else keeps its drawn pack shot
+ * until someone uploads a photo.
+ */
+import { ProductKind, productKind, splitSize } from "./products";
+import { photoUrl } from "./photoUrl";

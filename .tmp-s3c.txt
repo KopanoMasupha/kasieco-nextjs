@@ -1,0 +1,181 @@
+    body: "A driver brings it to your door. Count your stock, then give the driver your 4-digit code.",
+    tag: "Code hand-over",
+  },
+] as const;
+
+export default function HowItWorks({ variant = "big", className }: { variant?: "big" | "strip"; className?: string }) {
+  if (variant === "strip")
+    return (
+      <ol className={clsx("grid grid-cols-2 gap-2 lg:grid-cols-4", className)} aria-label="How buying works">
+        {HOW_IT_WORKS.map((s, i) => (
+          <li key={s.title} className="flex items-start gap-2.5 rounded-2xl border border-ink/[0.08] bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+            <span className="num flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ember font-display text-sm font-bold text-white sm:h-8 sm:w-8">{i + 1}</span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-ink">{s.title}</span>
+              <span className="block text-xs leading-snug text-ink/55">{s.tag} · {s.when.toLowerCase()}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    );
+
+  return (
+    <section className={clsx("mx-auto max-w-7xl px-5 sm:px-8", className)} aria-labelledby="how-it-works">
+      <div className="max-w-2xl">
+        <p className="eyebrow text-base !text-ember-dark sm:text-lg">How it works</p>
+        <h2 id="how-it-works" className="mt-2 text-5xl font-bold leading-tight text-ink sm:text-6xl">
+          Four steps from reserving to delivery
+        </h2>
+        <p className="mt-3 text-xl text-ink/60">You only pay once a deal is full, and every rand is held safely until your stock arrives.</p>
+      </div>
+
+      <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {HOW_IT_WORKS.map((s, i) => (
+          <motion.li
+            key={s.title}
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: i * 0.08 }}
+            className="relative flex flex-col rounded-3xl border border-ink/[0.08] bg-white p-6 shadow-[0_1px_2px_rgba(23,19,16,0.04)]"
+          >
+            <div className="flex items-center justify-between">
+              <span className="num flex h-14 w-14 items-center justify-center rounded-2xl bg-ember font-display text-2xl font-extrabold text-white">{i + 1}</span>
+              <s.icon size={28} className="text-ink/25" aria-hidden />
+            </div>
+            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.08em] text-ink/45">{s.when}</p>
+            <h3 className="mt-1 text-2xl font-bold leading-snug text-ink">{s.title}</h3>
+            <p className="mt-2 flex-1 text-base leading-relaxed text-ink/65">{s.body}</p>
+            <span className="mt-5 self-start rounded-full bg-leaf/10 px-3 py-1 text-sm font-semibold text-leaf">{s.tag}</span>
+            {i < HOW_IT_WORKS.length - 1 && (
+              <span className="absolute -right-4 top-10 z-10 hidden h-8 w-8 items-center justify-center rounded-full border border-ink/10 bg-[var(--paper)] text-ink/40 lg:flex" aria-hidden>
+                <ArrowRight size={15} />
+              </span>
+            )}
+          </motion.li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+```
+
+---
+
+## 8. Pay straight from the owner home page (newest)
+
+**Before:** tapping **Pay** in the Due now box took the owner to the deal page.
+**Now:** the TradeSafe payment popup opens right on the home page. When the payment goes through, that deal's row disappears and the Due now amount counts down.
+
+**File changed:** `app/owner/page.tsx`
+
+New imports:
+
+```tsx
+import { useState } from "react";
+import TradeSafeCheckout from "@/components/pay/TradeSafeCheckout";
+import { PaymentMethodKind } from "@/lib/types";
+```
+
+New state (`dispatch` now comes from `useStore`):
+
+```tsx
+const { state, dispatch } = useStore();
+const [payingDeal, setPayingDeal] = useState<{ dealId: string; amountCents: number; productName: string } | null>(null);
+```
+
+Each payment row is now a `<button>` instead of a `<Link>`:
+
+```tsx
+<button
+  key={p.id}
+  onClick={() => setPayingDeal({ dealId: p.id, amountCents: pos.dueCents, productName: p.productName })}
+  className="flex w-full flex-wrap items-center gap-3 rounded-xl bg-white/[0.07] px-4 py-3 text-left hover:bg-white/[0.12]"
+>
+  …
+  <span className="rounded-full bg-ember px-4 py-1.5 text-sm font-semibold text-white">Pay</span>
+</button>
+```
+
+The popup, just before the page's closing `</div>`:
+
+```tsx
+{payingDeal && shop && (
+  <TradeSafeCheckout
+    amountCents={payingDeal.amountCents}
+    title={payingDeal.productName}
+    subtitle="Held safely by TradeSafe until your stock arrives"
+    onPay={async (method: PaymentMethodKind) => {
+      const res = await dispatch({ type: "PAY_DEAL", dealId: payingDeal.dealId, shopId: shop.id, method });
+      return { error: res.error, ref: res.ref };
+    }}
+    onClose={() => setPayingDeal(null)}
+  />
+)}
+```
+
+The README now also explains paying from the home page and lists the Tastic rice photo.
+
+### The full file
+
+This file holds both the dark Due now box (section 3) and the Pay popup.
+
+**`app/owner/page.tsx`** (351 lines). Replace the whole file with this:
+
+```tsx
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import clsx from "clsx";
+import { startTour } from "@/lib/tour";
+import { ArrowRight, MessageCircle, Plus, Repeat, ShieldAlert, ShieldCheck, ShoppingCart, Store, Truck, Wallet , Sparkles } from "lucide-react";
+import { useState } from "react";
+import { useStore, useLiveRefresh, useMyShop } from "@/lib/store";
+import { isVerified, statusLabel } from "@/lib/compliance";
+import { findMatches, threadsFor } from "@/lib/exchange";
+import { formatDistance } from "@/lib/geo";
+import { formatCents, toCents, unitCentsFor } from "@/lib/pot";
+import { amountDue, dealsToPay, heldInEscrow, nextPaymentDeadline } from "@/lib/payments";
+import Countdown from "@/components/pay/Countdown";
+import AnimatedAmount from "@/components/pay/AnimatedAmount";
+import { myStop } from "@/lib/delivery";
+import PoolCard from "@/components/pot/PoolCard";
+import StockChart from "@/components/StockChart";
+import TradeSafeCheckout from "@/components/pay/TradeSafeCheckout";
+import { PaymentMethodKind } from "@/lib/types";
+
+export default function OwnerHome() {
+  useLiveRefresh(5000);
+  const { state, dispatch } = useStore();
+  const shop = useMyShop();
+  const [payingDeal, setPayingDeal] = useState<{ dealId: string; amountCents: number; productName: string } | null>(null);
+
+  if (!shop) {
+    return (
+      <div className="card mx-auto max-w-md p-8 text-center">
+        <Store size={30} className="mx-auto text-ink/25" />
+        <h1 className="mt-3 text-lg font-semibold text-ink">Register your shop first</h1>
+        <Link href="/owner/register" className="btn-dark mt-5 inline-flex px-5 py-3 text-sm">
+          Register my shop
+        </Link>
+      </div>
+    );
+  }
+
+  const verified = isVerified(shop);
+  const openPools = state.pools.filter((p) => p.status === "open");
+  const joinedOpen = openPools.filter((p) => p.commitments.some((c) => c.shopId === shop.id));
+  const notJoined = openPools.filter((p) => !p.commitments.some((c) => c.shopId === shop.id));
+  const inProgress = state.pools.filter((p) => !["open", "delivered", "cancelled"].includes(p.status) && p.commitments.some((c) => c.shopId === shop.id));
+  const due = amountDue(state.pools, state.fees, shop.id);
+  const toPay = dealsToPay(state.pools, shop.id);
+  const heldCents = heldInEscrow(state.pools, shop.id);
+  const deadline = nextPaymentDeadline(state.pools, shop.id);
+  // what this shop saves against buying alone, across its live deals
+  const savings = [...joinedOpen, ...inProgress].reduce((s, p) => {
+    const mine = p.commitments.find((c) => c.shopId === shop.id)!;
+    return s + mine.qty * Math.max(0, toCents(p.retailPrice) - unitCentsFor(p, p.minQty));
+  }, 0);
+  // my deliveries that still need something from me (or are on the way)
+  const deliveries = state.pools

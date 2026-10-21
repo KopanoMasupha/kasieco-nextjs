@@ -1,0 +1,17 @@
+1: # MzansiConnect: what's new
+20: ## 1. Onboarding tour with Thuli
+69: ### Thuli's design
+94: ### The code
+728: ## 2. MzansiConnect helper chatbot
+759: ### The code
+1231: ## 3. One dark Due now box on the owner home page
+1250: ### The code
+1400: ## 4. Admin layout fixes
+1413: ### The code
+1531: ## 5. Tests up to 139 and README updated
+1540: ## 6. Tastic rice photo
+1552: ### The code
+1589: ## 7. Bigger "How it works" text on the landing page
+1608: ### The code
+1714: ## 8. Pay straight from the owner home page (newest)
+1768: ### The full file

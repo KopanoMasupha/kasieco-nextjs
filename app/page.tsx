@@ -11,6 +11,7 @@ import { useStore, useMe } from "@/lib/store";
 import { HOME_FOR } from "@/components/SignIn";
 import { isVerified } from "@/lib/compliance";
 import TownshipSlideshow from "@/components/TownshipSlideshow";
+import HowItWorks from "@/components/HowItWorks";
 import {
   ArrowRight,
   MapPin,
@@ -20,7 +21,6 @@ import {
   Store,
   Landmark,
   GraduationCap,
-  Wallet,
   Truck,
 } from "lucide-react";
 import clsx from "clsx";
@@ -100,6 +100,8 @@ export default function LandingPage() {
         </TownshipSlideshow>
       </div>
 
+      <HowItWorks className="pb-16 pt-6" />
+
       {/* live numbers */}
       <section className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
         <div className="grid grid-cols-3 divide-x divide-ink/10 rounded-2xl border border-ink/[0.07] bg-white">
@@ -112,25 +114,6 @@ export default function LandingPage() {
               <p className="num font-display text-xl font-bold text-ink sm:text-4xl">{n}</p>
               <p className="mt-1 text-[11px] text-ink/50 sm:text-sm">{l}</p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* how it works — three beats */}
-      <section className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
-        <p className="eyebrow">How it works</p>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          {[
-            { n: "01", icon: Users2, t: "Reserve free", d: "Every shop that joins lowers the price." },
-            { n: "02", icon: Wallet, t: "Pay when full", d: "Everyone pays the lowest price — held by TradeSafe." },
-            { n: "03", icon: Truck, t: "Delivered", d: "On your day, with a 4-digit code." },
-          ].map((x, i) => (
-            <motion.div key={x.n} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="card relative overflow-hidden p-6">
-              <span className="pointer-events-none absolute -right-2 -top-6 font-display text-[7rem] font-extrabold leading-none text-ink/[0.04]">{x.n}</span>
-              <x.icon size={22} className="text-ember" />
-              <h3 className="mt-4 text-xl font-bold text-ink">{x.t}</h3>
-              <p className="mt-1 text-sm text-ink/55">{x.d}</p>
-            </motion.div>
           ))}
         </div>
       </section>

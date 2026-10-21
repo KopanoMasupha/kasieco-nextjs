@@ -14,6 +14,7 @@ const PHOTOS: { kind: ProductKind; size?: string; file: string; alt: string }[] 
   { kind: "flour", size: "10kg", file: "flour-10kg.jpg", alt: "Snowflake cake wheat flour 10 kg" },
   { kind: "oil", size: "750ml", file: "oil-750ml.jpg", alt: "B-well cooking oil blend 750 ml" },
   { kind: "soap", size: "175g", file: "soap-175g.jpg", alt: "Dettol Original bath soap 175 g" },
+  { kind: "rice", size: "10kg", file: "rice-10kg.jpg", alt: "Tastic Long Grain Parboiled White Rice 10 kg" },
 ];
 
 export function stockPhoto(name: string): { src: string; alt: string } | undefined {

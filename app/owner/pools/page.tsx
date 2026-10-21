@@ -49,7 +49,7 @@ export default function BuyPage() {
         </div>
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-tour="deal-list">
         {[
           { icon: TrendingDown, title: "Reserve units" },
           { icon: Undo2, title: "Deal fills" },

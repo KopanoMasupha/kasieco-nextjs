@@ -1,0 +1,18 @@
+/** The soonest payment deadline among this shop's full deals (null when nothing is due). */
+export function nextPaymentDeadline(pools: Pool[], shopId: string): string | null {
+  const due = dealsToPay(pools, shopId)
+    .map((x) => x.pool.paymentDueAt)
+    .filter((d): d is string => !!d)
+    .sort();
+  return due[0] ?? null;
+}
+
+/** "1d 23:59:41", "05:12:09", or "Time is up". */
+export function formatCountdown(ms: number) {
+  if (ms <= 0) return "Time is up";
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400);
+  const two = (n: number) => String(n).padStart(2, "0");
+  const hms = `${two(Math.floor((s % 86400) / 3600))}:${two(Math.floor((s % 3600) / 60))}:${two(s % 60)}`;
+  return d > 0 ? `${d}d ${hms}` : hms;
+}

@@ -29,7 +29,7 @@ export default function DealPriceHero({ pool, myQty }: { pool: Pool; myQty?: num
   const barH = (c: number) => 40 + ((c - lo) / Math.max(1, hi - lo)) * 60; // 40–100%
 
   return (
-    <section className="card overflow-hidden">
+    <section className="card overflow-hidden" data-tour="deal-price">
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         {/* the saving */}
         <div className="relative p-5 sm:p-6">

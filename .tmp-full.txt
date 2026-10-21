@@ -1,0 +1,431 @@
+===== [FULL] components/onboarding/Guide.tsx  -- DIFFERS (spec line 0098, 2 changed lines)
+-      <path d="M38 76 C 44 64 60 61 80 61 C 100 61 116 64 122 76 C 116 73 100 70 80 70 C 60 70 44 73 38 76 Z" fill="#C4471C" />
++      <path d="M38 76 C 44 64 60 61 80 61 C 100 61 116 61 122 76 C 116 73 100 70 80 70 C 60 70 44 73 38 76 Z" fill="#C4471C" />
+
+===== ===== [FULL] lib/tour.ts  -- IDENTICAL (spec line 0221)
+
+===== ===== [FULL] components/onboarding/Tour.tsx  -- DIFFERS (spec line 0386, 106 changed lines)
+-const PAD = 8; // space around the highlighted element
++const PAD = 8;
+-/** The first visible element tagged data-tour="name" (nav links exist twice: sidebar + phone bar). */
+-/**
+- * Onboarding tour for shop owners. Starts by itself the first time an owner
+- * signs in (once per account, remembered in this browser) and can be replayed
+- * from the account menu. Thuli explains one feature per step; the feature is
+- * lit up on the real page while everything else dims.
+- */
+-  const routerRef = useRef(router); // stable across renders (the offline build's router isn't)
++  const routerRef = useRef(router);
+-  // auto-start once per owner account, on their home page
+-  // replay from anywhere
+-
+-          // phone menu bar: bring the page to the top and slide the bar to this item
+-          // keep it clear of the card: near the top on phones, centred on computers
+-        setRect(null); // not on screen: explain it in the middle instead
++        setRect(null);
+-
+-  // where the speech card goes (computers): beside sidebar items, else below or above the element
+-      if (tall) cardStyle = { right: 24, bottom: 24, width: w }; // big sections: keep their top visible
++      if (tall) cardStyle = { right: 24, bottom: 24, width: w };
+-      {/* dim everything; block clicks so the tour stays in step */}
+-            style={small ? undefined : cardStyle}
++            style={cardStyle}
+-            <div className="flex items-end gap-1">
+-              <Guide pose={step.pose} size={small ? 86 : 104} className="-mb-1 shrink-0 drop-shadow-lg" />
+-              <div className="relative min-w-0 flex-1 rounded-2xl bg-white p-4 shadow-2xl">
+-                {/* speech-bubble tail pointing at Thuli */}
+-                <span className="absolute -left-2 bottom-8 h-4 w-4 rotate-45 bg-white" aria-hidden />
+-                <div className="relative">
+-                  <div className="flex items-start justify-between gap-2">
+-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ember-dark">
+-                      Thuli · {i + 1} of {OWNER_TOUR.length}
+-                    </p>
+-                    <button onClick={finish} className="-mr-1 -mt-1 rounded-full p-1 text-ink/35 hover:bg-sand-100 hover:text-ink" aria-label="Skip the tour">
+-                      <X size={15} />
+-                    </button>
+-                  </div>
+-                  <h2 className="mt-1 font-display text-lg font-bold leading-snug text-ink">{title}</h2>
+-                  <p className="mt-1 text-sm leading-relaxed text-ink/70">{step.body}</p>
+-
+-                  {/* progress */}
+-                  <div className="mt-3 flex gap-1" aria-hidden>
+-                    {OWNER_TOUR.map((s, n) => (
+-                      <span key={s.id} className={clsx("h-1 flex-1 rounded-full", n <= i ? "bg-ember" : "bg-ink/10")} />
+-                    ))}
+-                  </div>
+-
+-                  <div className="mt-3 flex items-center gap-2">
+-                    {i === 0 ? (
+-                      <button onClick={finish} className="text-sm font-medium text-ink/50 hover:text-ink">
+-                        Skip tour
+-                      </button>
+-                    ) : (
+-                      <button onClick={() => setI(i - 1)} className="btn-outline px-3 py-2 text-sm" aria-label="Back">
+-                        <ArrowLeft size={14} />
+-                      </button>
+-                    )}
+-                    <div className="flex-1" />
+-                    {last && (
+-                      <button
+-                        onClick={() => {
+-                          finish();
+-                          router.push("/owner/pools");
+-                        }}
+-                        className="btn-outline px-4 py-2 text-sm"
+-                      >
+-                        See deals
+-                      </button>
+-                    )}
+-                    <button ref={nextRef} onClick={() => (last ? finish() : setI(i + 1))} className="btn-ember px-5 py-2 text-sm">
+-                      {i === 0 ? "Show me" : last ? "Done" : "Next"} {!last && <ArrowRight size={14} />}
+-                    </button>
+-                  </div>
+-                </div>
++            <div className="flex items-start gap-3 rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-ink/5">
++              <Guide pose={step.pose} size={small ? 88 : 120} />
++              <div className="flex-1 min-w-0">
++                <p className="font-display text-xl font-bold text-ink">{title}</p>
++                <p className="mt-1 text-sm leading-relaxed text-ink/70">{step.body}</p>
++            <div className="mt-3 flex items-center justify-between gap-3">
++              {!last && (
++                <button
++                  ref={nextRef}
++                  onClick={() => setI((n) => Math.min(OWNER_TOUR.length - 1, n + 1))}
++                  className="btn-dark px-4 py-2.5 text-sm"
++                >
++                  Next <ArrowRight size={14} />
++                </button>
++              )}
++              {last && (
++                <button onClick={finish} className="btn-dark px-4 py-2.5 text-sm">
++                  I'm ready <ArrowRight size={14} />
++                </button>
++              )}
++              {i > 0 && (
++                <button onClick={() => setI((n) => Math.max(0, n - 1))} className="btn-outline px-4 py-2.5 text-sm !border-white/30 !bg-white/10 !text-white">
++                  <ArrowLeft size={14} /> Back
++                </button>
++              )}
++              <button onClick={finish} className="btn-outline px-4 py-2.5 text-sm !border-white/30 !bg-white/10 !text-white">
++                <X size={14} /> Skip
++              </button>
++            </div>
+-
+
+===== ===== [FULL] lib/helpbot.ts  -- DIFFERS (spec line 0763, 29 changed lines)
+-      "MzansiConnect partners with wholesalers who put up a bulk lot (for example 60 bales of maize meal). On 'Buy' you add the deals you want to your cart, then check out to reserve them all at once — it's free, you pay R0 today. The more shops reserve, the lower the price. When the whole lot is reserved, the price locks at the lowest tier and everyone pays that same final price within 48 hours, through TradeSafe. Then MzansiConnect orders it for all of you.",
++      "MzansiConnect partners with wholesalers who put up a bulk lot (for example 60 bales of maize meal). On 'Buy' you reserve the units you want — it's free, you pay nothing yet. The more shops reserve, the lower the price. When the whole lot is reserved, the price locks at the lowest tier and everyone pays that same final price within 48 hours, through TradeSafe. Then MzansiConnect orders it for all of you.",
+-      "Every deal page shows a tracker with 7 steps: Filling up (shops reserve, free) → Payment due (the deal is full: everyone pays into TradeSafe within 48 hours) → Payments checked (MzansiConnect checks every payment) → Ordered (two admins approve paying the wholesaler from escrow) → Scheduled (you get a date, a time slot and a driver) → On the way → Delivered. You get a message at every step — tap the bell at the top.",
++      "Every deal page shows a tracker with 7 steps: Joining (shops reserve) → Full · pay (everyone pays into TradeSafe within 48 hours) → Paid (MzansiConnect checks every payment) → Ordered (two admins approve paying the wholesaler from escrow) → Delivery booked (you get a date, a time slot and a driver) → On the way → Delivered. You get a message at every step — tap the bell at the top.",
++    id: "cart",
++    keywords: ["my cart", "shopping bag", "checkout", "check out", "add to cart", "basket", "reserve all"],
++    answer:
++      "On Buy, tap 'Add to cart' on any deal (or open a deal and choose how many). The bag icon at the top shows your cart. At checkout you set delivery days once for everything, then tap 'Reserve all · pay R0 today'. Nothing is paid at checkout: you pay each deal within 48 hours of it filling, and the Due now bar shows the countdown.",
++    links: [{ label: "Open my cart", href: "/owner/cart" }],
++  },
++  {
+-      "When you join a deal you choose the days you can receive stock (Mon–Sat), morning or afternoon, and what happens if nobody is there: the driver comes back later that day, leaves it at a partner shop you trust nearby, brings it on the next run, or you collect it at the wholesaler. You can name a backup person who gets their own code. When your delivery is scheduled, tap \"I'll be there\". If you confirm and then aren't there, a R30 re-delivery fee is added to your Payments page.",
++      "When you join a deal you choose the days you can receive stock (Mon–Sat), morning or afternoon, and what happens if nobody is there: the driver comes back later that day, leaves it at a partner shop you trust nearby, brings it on the next run, or you collect it at the wholesaler. You can name a backup person who gets their own code. When your delivery is booked, tap \"I'll be there\". If you confirm and then aren't there, a R30 re-delivery fee is added to your Payments page.",
+-    id: "transport",
+-    keywords: ["transport", "driver", "bakkie", "car", "move the goods", "collect", "fetch", "delivery between", "courier", "lift"],
+-    answer:
+-      "No car? Once both shops accept an offer on Willing buyer & seller, tap 'Book transport' in the chat. Choose which way the goods go (or both ways for a swap), a day and time, and who pays: you, them, or 50/50. The fee is R40 plus R9 a km (×1.6 both ways) and is held by TradeSafe until the goods arrive. The shop receiving the goods reads its 4-digit code to the driver, and then the driver is paid. You can cancel for a full refund until the driver collects.",
+-    links: [{ label: "Willing buyer & seller", href: "/owner/exchange" }],
+-  },
+-  {
+-    id: "cart",
+-    keywords: ["my cart", "shopping bag", "checkout", "check out", "add to cart", "basket", "reserve all"],
+-    answer:
+-      "On Buy, tap 'Add to cart' on any deal (or open a deal and choose how many). The bag icon at the top shows your cart. At checkout you set delivery days once for everything, then tap 'Reserve all · pay R0 today'. Nothing is paid at checkout: you pay each deal within 48 hours of it filling, and the Due now bar shows the countdown.",
+-    links: [{ label: "Open my cart", href: "/owner/cart" }],
+-  },
+-  {
+-    keywords: ["order online", "buy online", "deliver to me", "customer pay", "customer order"],
++    keywords: ["order", "buy online", "checkout", "cart", "basket", "deliver to me", "customer pay", "purchase"],
+
+===== ===== [FULL] components/HelpBot.tsx  -- IDENTICAL (spec line 0992)
+
+===== ===== [FULL] app/api/ai/chat/route.ts  -- IDENTICAL (spec line 1135)
+
+===== ===== [FULL] components/AppShell.tsx  -- DIFFERS (spec line 1163, 2 changed lines)
++import SalesPop from "./shop/SalesPop";
++      {me?.role === "owner" && !isLanding && <SalesPop />}
+
+===== ===== [FULL] components/pay/AnimatedAmount.tsx  -- DIFFERS (spec line 1254, 82 changed lines)
+-import { useEffect, useRef, useState } from "react";
+-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
++import { useEffect, useState } from "react";
++import clsx from "clsx";
+-/**
+- * A rand amount that counts up (or down) to its new value instead of jumping,
+- * and briefly shows "+R…" when it grows — e.g. when one of your deals fills
+- * and its payment is added to Due now.
+- */
+-export default function AnimatedAmount({ cents, className, showDelta = true }: { cents: number; className?: string; showDelta?: boolean }) {
+-  const reduce = useReducedMotion();
+-  const [shown, setShown] = useState(cents);
+-  const [delta, setDelta] = useState<{ id: number; cents: number } | null>(null);
+-  const prev = useRef(cents);
+-  const first = useRef(true);
++/** Counts up/down when the amount changes, with a "+R…" delta chip. Orange when > R0. */
++export default function AnimatedAmount({ amountCents, className }: { amountCents: number; className?: string }) {
++  const [display, setDisplay] = useState(amountCents);
++  const [prev, setPrev] = useState(amountCents);
+-    const from = prev.current;
+-    prev.current = cents;
+-    if (first.current) {
+-      first.current = false;
+-      setShown(cents);
+-      return;
+-    }
+-    if (from === cents) return;
+-    if (showDelta && cents > from) setDelta({ id: Date.now(), cents: cents - from });
+-    if (reduce) {
+-      setShown(cents);
+-      return;
++    if (amountCents !== prev) {
++      setDisplay(amountCents);
+-    const start = performance.now();
+-    const dur = 900;
+-    let raf = 0;
+-    const step = (t: number) => {
+-      const k = Math.min(1, (t - start) / dur);
+-      const eased = 1 - Math.pow(1 - k, 3);
+-      setShown(Math.round(from + (cents - from) * eased));
+-      if (k < 1) raf = requestAnimationFrame(step);
+-    };
+-    raf = requestAnimationFrame(step);
+-    return () => cancelAnimationFrame(raf);
+-  }, [cents, reduce, showDelta]);
++    setPrev(amountCents);
++  }, [amountCents, prev]);
+-  useEffect(() => {
+-    if (!delta) return;
+-    const t = setTimeout(() => setDelta(null), 5000);
+-    return () => clearTimeout(t);
+-  }, [delta]);
++  const delta = display - prev;
++  const showDelta = delta !== 0;
+-    <span className="relative inline-flex items-baseline gap-2">
+-      <span className={className}>{formatCents(shown)}</span>
+-      <AnimatePresence>
+-        {delta && (
+-          <motion.span
+-            key={delta.id}
+-            initial={{ opacity: 0, y: 6 }}
+-            animate={{ opacity: 1, y: 0 }}
+-            exit={{ opacity: 0 }}
+-            className="num rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-ember-dark shadow-sm"
+-          >
+-            +{formatCents(delta.cents)}
+-          </motion.span>
++    <div className="flex items-baseline gap-1">
++      <span
++        className={clsx(
++          "num font-display font-bold tabular-nums",
++          display > 0 ? "text-ember-dark" : "text-ink",
++          className
+-      </AnimatePresence>
+-    </span>
++      >
++        {formatCents(display)}
++      </span>
++      {showDelta && delta > 0 && (
++        <span className="text-xs font-semibold text-ember-dark">+{formatCents(delta)}</span>
++      )}
++    </div>
+
+===== ===== [FULL] components/pay/Countdown.tsx  -- DIFFERS (spec line 1329, 47 changed lines)
+-import { Clock } from "lucide-react";
+-import { formatCountdown } from "@/lib/payments";
+-/** Re-render every second (one shared tick per component). */
+-export function useNow(ms = 1000) {
+-  const [now, setNow] = useState(() => Date.now());
++/** Live hh:mm:ss countdown to a deadline ISO string. Turns urgent (orange) in the last 12 hours. */
++export default function Countdown({ deadline }: { deadline: string }) {
++  const [msLeft, setMsLeft] = useState(() => new Date(deadline).getTime() - Date.now());
++
+-    const t = setInterval(() => setNow(Date.now()), ms);
+-    return () => clearInterval(t);
+-  }, [ms]);
+-  return now;
+-}
++    const timer = setInterval(() => {
++      setMsLeft(new Date(deadline).getTime() - Date.now());
++    }, 1000);
++    return () => clearInterval(timer);
++  }, [deadline]);
+-/**
+- * A live payment countdown to a real deadline (the 48-hour window).
+- * Turns urgent (red) in the last 12 hours.
+- */
+-export default function Countdown({ iso, label = "left to pay", className, icon = true }: { iso: string; label?: string; className?: string; icon?: boolean }) {
+-  const now = useNow();
+-  const ms = new Date(iso).getTime() - now;
+-  const urgent = ms < 12 * 3600000;
++  if (msLeft <= 0) return <span className="text-xs font-semibold text-ember-dark">payment time is up</span>;
++
++  const totalSeconds = Math.max(0, Math.floor(msLeft / 1000));
++  const h = Math.floor(totalSeconds / 3600);
++  const m = Math.floor((totalSeconds % 3600) / 60);
++  const s = totalSeconds % 60;
++  const urgent = h <= 12 && h > 0; // last 12 hours
++  const pad = (n: number) => n.toString().padStart(2, "0");
++
+-    <span className={clsx("num inline-flex items-center gap-1 tabular-nums", urgent && "font-semibold", className)} data-urgent={urgent || undefined} aria-live="off">
+-      {icon && <Clock size={13} className="shrink-0" />}
+-      <span>{formatCountdown(ms)}</span>
+-      {ms > 0 && label && <span className="font-normal opacity-80">{label}</span>}
++    <span
++      className={clsx(
++        "text-xs font-mono tabular-nums",
++        urgent ? "text-ember-dark font-bold" : "text-ink/50"
++      )}
++    >
++      {pad(h)}:{pad(m)}:{pad(s)} left to pay
+
+===== ===== [FULL] components/pot/PoolCard.tsx  -- DIFFERS (spec line 1439, 48 changed lines)
+-    <Link href={href ?? `/owner/pools/${pool.id}`} className={clsx("card group flex items-start gap-3 overflow-hidden transition-shadow hover:shadow-lg", compact ? "p-3" : "p-4")}>
++    <Link href={href ?? `/owner/pools/${pool.id}`} className={clsx("card group flex items-center gap-4 overflow-hidden transition-shadow hover:shadow-lg", compact ? "p-3" : "p-4")}>
+-        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
+-          <p className="text-sm font-semibold leading-snug text-ink">{pool.productName}</p>
++        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
++          <p className="font-semibold leading-snug text-ink">{pool.productName}</p>
+-        <p className="truncate text-xs text-ink/45">
+-          {rating && (
+-            <span className="mr-1 inline-flex items-center gap-0.5 font-semibold text-ink/70">
+-              <Star size={11} className="text-[#F2A93B]" fill="currentColor" strokeWidth={0} /> {rating.avg.toFixed(1)} ·
+-            </span>
+-          )}
+-          {pool.supplierName} · {pool.unitLabel}
+-        </p>
++        <div className="flex-wrap mt-1">
++          <p className="text-xs text-ink/45 truncate">
++            {rating && (
++              <span className="mr-1 inline-flex items-center gap-0.5 font-semibold text-ink/70">
++                <Star size={11} className="text-[#F2A93B]" fill="currentColor" strokeWidth={0} /> {rating.avg.toFixed(1)} ·
++              </span>
++            )}
++            {pool.supplierName} · {pool.unitLabel}
++          </p>
++        </div>
+-            <p className="mt-1 text-sm">
++            <p className="mt-1.5 text-sm">
+-              <span className="num ml-1 font-display text-base font-bold text-leaf">{formatCents(best)}</span>
++              <span className="num ml-1.5 font-display text-lg font-bold text-leaf">{formatCents(best)}</span>
+-            <div className="flex flex-wrap gap-1 mt-1">
++            <div className="flex-wrap mt-1">
+-                <span key={b.label} className={clsx("rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white", b.tone === "ember" ? "bg-ember" : b.tone === "leaf" ? "bg-leaf" : "bg-ink")}>
++                <span key={b.label} className={clsx("rounded-full px-1.5 py-0.5 align-middle text-[10px] font-bold text-white", b.tone === "ember" ? "bg-ember" : b.tone === "leaf" ? "bg-leaf" : "bg-ink")}>
+-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/5">
++            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/5">
+-            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink/45">
++            <p className="mt-1 flex flex-wrap items-center justify-between gap-x-2 text-[11px] text-ink/45">
+-                <Users size={11} /> {pool.commitments.length} in · <span className={clsx(left / pool.minQty <= 0.35 && "font-semibold text-ember-dark")}>{left} left</span>
++                <Users size={11} /> {pool.commitments.length} shops in · <span className={clsx(left / pool.minQty <= 0.35 && "font-semibold text-ember-dark")}>{left} left</span>
++              {!mine && qty < pool.minQty && (
++                <button
++                  className="mt-2 rounded-full bg-ember px-4 py-2 text-sm font-medium text-white hover:bg-ember/90 transition-colors"
++                  onClick={() => dispatch({ type: "ADD_TO_CART", poolId: pool.id, qty: pool.minQty - qty })}
++                >
++                  Add to cart ({pool.minQty - qty} needed)
++                </button>
++              )}
+-      <ArrowRight size={16} className="mt-1 shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5" />
++      <ArrowRight size={16} className="shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5" />
+
+===== ===== [FULL] lib/productPhotos.ts  -- IDENTICAL (spec line 1556)
+
+===== ===== [FULL] components/HowItWorks.tsx  -- IDENTICAL (spec line 1612)
+
+===== ===== [FULL] app/owner/page.tsx  -- DIFFERS (spec line 1774, 90 changed lines)
++import { useState } from "react";
+-import { startTour } from "@/lib/tour";
+-import { ArrowRight, MessageCircle, Plus, Repeat, ShieldAlert, ShieldCheck, ShoppingCart, Store, Truck, Wallet , Sparkles } from "lucide-react";
+-import { useState } from "react";
++import { ArrowRight, MessageCircle, Plus, Repeat, ShieldAlert, ShieldCheck, ShoppingCart, Store, Truck, Wallet, Sparkles } from "lucide-react";
+-import { amountDue, dealsToPay, heldInEscrow, nextPaymentDeadline } from "@/lib/payments";
+-import Countdown from "@/components/pay/Countdown";
+-import AnimatedAmount from "@/components/pay/AnimatedAmount";
++import { amountDue, dealsToPay, dueText, heldInEscrow, nextPaymentDeadline } from "@/lib/payments";
++import { startTour } from "@/lib/tour";
++import AnimatedAmount from "@/components/pay/AnimatedAmount";
++import Countdown from "@/components/pay/Countdown";
++  const nextDeadline = nextPaymentDeadline(state.pools);
+-  const deadline = nextPaymentDeadline(state.pools, shop.id);
+-      <section data-tour="money" className="glass-dark space-y-4 p-5">
++      <section data-tour="money" className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center glass-dark p-5">
+-            <AnimatedAmount cents={due} className={clsx("num font-display text-4xl font-bold", due > 0 && "text-[#FFB38F]")} />
+-            {deadline ? (
+-              <p className="mt-1 text-sm text-white/80">
+-                <Countdown iso={deadline} label="left to pay" className="data-[urgent]:text-[#FFB38F]" />
+-              </p>
+-            ) : (
+-              <p className="mt-1 text-xs text-white/50">Nothing to pay yet: you pay when a deal fills</p>
+-            )}
++            <div className="flex items-baseline gap-1">
++              <AnimatedAmount amountCents={due} />
++              {due > 0 && nextDeadline && <Countdown deadline={nextDeadline} />}
++            </div>
+-          <div className="flex flex-1 justify-end">
+-            <Link href="/owner/pools" className="btn-outline !border-white/30 !bg-white/10 px-5 py-2.5 text-sm !text-white">
+-              <ShoppingCart size={14} /> Buy stock
+-            </Link>
+-          </div>
+-
+-        {toPay.length > 0 && (
+-          <div className="space-y-2 border-t border-white/10 pt-4">
+-            {toPay.map(({ pool: p, pos }) => (
+-              <button key={p.id} onClick={() => setPayingDeal({ dealId: p.id, amountCents: pos.dueCents, productName: p.productName })} className="flex w-full flex-wrap items-center gap-3 rounded-xl bg-white/[0.07] px-4 py-3 text-left hover:bg-white/[0.12]">
+-                <Wallet size={16} className="shrink-0 text-[#FFB38F]" />
+-                <span className="min-w-0 flex-1 text-sm">
+-                  <span className="block font-semibold text-white">
+-                    {p.productName} is full — pay {formatCents(pos.dueCents)}
+-                  </span>
+-                  <span className="text-white/55">
+-                    {p.paymentDueAt && <Countdown iso={p.paymentDueAt} className="text-[#FFB38F]" />} · held by TradeSafe until delivery
+-                  </span>
+-                </span>
+-                <span className="rounded-full bg-ember px-4 py-1.5 text-sm font-semibold text-white">Pay</span>
+-              </button>
+-            ))}
+-          </div>
+-        )}
++        <div className="flex flex-wrap gap-2">
++          {due > 0 && (
++            <button
++              onClick={() => {
++                const first = toPay[0];
++                if (first) setPayingDeal({ dealId: first.pool.id, amountCents: first.pos.dueCents, productName: first.pool.productName });
++              }}
++              className="btn-ember px-5 py-2.5 text-sm"
++            >
++              <Plus size={14} /> Pay now
++            </button>
++          )}
++          <Link href="/owner/pools" className="btn-outline !border-white/30 !bg-white/10 px-5 py-2.5 text-sm !text-white">
++            <ShoppingCart size={14} /> Buy stock
++          </Link>
++        </div>
++      {toPay.map(({ pool: p, pos }) => (
++        <button
++          key={p.id}
++          onClick={() => setPayingDeal({ dealId: p.id, amountCents: pos.dueCents, productName: p.productName })}
++          className="card flex flex-wrap items-center gap-4 border-2 border-ember p-4 hover:shadow-lg"
++        >
++          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-ember text-white">
++            <Wallet size={20} />
++          </span>
++          <span className="min-w-0 flex-1 text-sm">
++            <span className="block font-semibold text-ink">
++              {p.productName} is full — pay {formatCents(pos.dueCents)}
++            </span>
++            <span className="text-ink/55">{dueText(p.paymentDueAt)} · held by TradeSafe until delivery</span>
++          </span>
++          <span className="btn-pill bg-[#0B3D3A] px-4 py-2 text-sm text-white">Pay</span>
++        </button>
++      ))}
++
+-            ? "Delivery scheduled"
++            ? "Delivery booked"
++

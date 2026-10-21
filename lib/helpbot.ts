@@ -22,7 +22,7 @@ export const INTENTS: Intent[] = [
     id: "deal",
     keywords: ["deal", "bulk", "pot", "pool", "group buy", "buy together", "join", "price drop", "cheaper", "how much do i pay", "buy"],
     answer:
-      "MzansiConnect partners with wholesalers who put up a bulk lot (for example 60 bales of maize meal). On 'Buy' you reserve the units you want — it's free, you pay nothing yet. The more shops reserve, the lower the price. When the whole lot is reserved, the price locks at the lowest tier and everyone pays that same final price within 48 hours, through TradeSafe. Then MzansiConnect orders it for all of you.",
+      "MzansiConnect partners with wholesalers who put up a bulk lot (for example 60 bales of maize meal). On 'Buy' you add the deals you want to your cart, then check out to reserve them all at once — it's free, you pay R0 today. The more shops reserve, the lower the price. When the whole lot is reserved, the price locks at the lowest tier and everyone pays that same final price within 48 hours, through TradeSafe. Then MzansiConnect orders it for all of you.",
     links: [{ label: "See deals", href: "/owner/pools" }],
   },
   {
@@ -42,7 +42,7 @@ export const INTENTS: Intent[] = [
     id: "after-close",
     keywords: ["what happens", "closed", "order placed", "confirm", "admin", "when will", "status", "track"],
     answer:
-      "Every deal page shows a tracker with 7 steps: Joining (shops reserve) → Full · pay (everyone pays into TradeSafe within 48 hours) → Paid (MzansiConnect checks every payment) → Ordered (two admins approve paying the wholesaler from escrow) → Delivery booked (you get a date, a time slot and a driver) → On the way → Delivered. You get a message at every step — tap the bell at the top.",
+      "Every deal page shows a tracker with 7 steps: Filling up (shops reserve, free) → Payment due (the deal is full: everyone pays into TradeSafe within 48 hours) → Payments checked (MzansiConnect checks every payment) → Ordered (two admins approve paying the wholesaler from escrow) → Scheduled (you get a date, a time slot and a driver) → On the way → Delivered. You get a message at every step — tap the bell at the top.",
     links: [{ label: "My messages", href: "/inbox" }],
   },
   {
@@ -61,7 +61,7 @@ export const INTENTS: Intent[] = [
     id: "delivery-choices",
     keywords: ["not there", "miss", "missed", "away", "choose day", "which day", "morning", "afternoon", "backup", "someone else", "i'll be there", "confirm", "re-delivery", "redelivery"],
     answer:
-      "When you join a deal you choose the days you can receive stock (Mon–Sat), morning or afternoon, and what happens if nobody is there: the driver comes back later that day, leaves it at a partner shop you trust nearby, brings it on the next run, or you collect it at the wholesaler. You can name a backup person who gets their own code. When your delivery is booked, tap \"I'll be there\". If you confirm and then aren't there, a R30 re-delivery fee is added to your Payments page.",
+      "When you join a deal you choose the days you can receive stock (Mon–Sat), morning or afternoon, and what happens if nobody is there: the driver comes back later that day, leaves it at a partner shop you trust nearby, brings it on the next run, or you collect it at the wholesaler. You can name a backup person who gets their own code. When your delivery is scheduled, tap \"I'll be there\". If you confirm and then aren't there, a R30 re-delivery fee is added to your Payments page.",
   },
   {
     id: "drop-point",
@@ -122,8 +122,22 @@ export const INTENTS: Intent[] = [
     links: [{ label: "My stock", href: "/owner/stock" }],
   },
   {
+    id: "transport",
+    keywords: ["transport", "driver", "bakkie", "car", "move the goods", "collect", "fetch", "delivery between", "courier", "lift"],
+    answer:
+      "No car? Once both shops accept an offer on Willing buyer & seller, tap 'Book transport' in the chat. Choose which way the goods go (or both ways for a swap), a day and time, and who pays: you, them, or 50/50. The fee is R40 plus R9 a km (×1.6 both ways) and is held by TradeSafe until the goods arrive. The shop receiving the goods reads its 4-digit code to the driver, and then the driver is paid. You can cancel for a full refund until the driver collects.",
+    links: [{ label: "Willing buyer & seller", href: "/owner/exchange" }],
+  },
+  {
+    id: "cart",
+    keywords: ["my cart", "shopping bag", "checkout", "check out", "add to cart", "basket", "reserve all"],
+    answer:
+      "On Buy, tap 'Add to cart' on any deal (or open a deal and choose how many). The bag icon at the top shows your cart. At checkout you set delivery days once for everything, then tap 'Reserve all · pay R0 today'. Nothing is paid at checkout: you pay each deal within 48 hours of it filling, and the Due now bar shows the countdown.",
+    links: [{ label: "Open my cart", href: "/owner/cart" }],
+  },
+  {
     id: "customer-buy",
-    keywords: ["order", "buy online", "checkout", "cart", "basket", "deliver to me", "customer pay", "purchase"],
+    keywords: ["order online", "buy online", "deliver to me", "customer pay", "customer order"],
     answer:
       "Customers can't order or pay online yet. Right now you can find verified shops near you, see what they have on the shelf and their prices, check if they're open, and call, WhatsApp or get directions. Online ordering is on our roadmap for a later phase.",
     links: [{ label: "Find shops", href: "/consumer" }],

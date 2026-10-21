@@ -209,7 +209,7 @@ export default function DealPage({ params }: { params: { id: string } }) {
 
       {/* phones: the price and the action stay in reach while scrolling (space on the right for the help button) */}
       {canJoin && !joining && (
-        <div className="fixed inset-x-0 bottom-0 z-[800] border-t border-ink/[0.08] bg-white/95 px-4 py-3 pr-20 backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-[800] border-t border-ink/[0.08] bg-white/95 px-4 py-3 pr-20 backdrop-blur lg:hidden" data-tour="deal-join">
           <div className="flex items-center gap-3">
             <div className="min-w-0 leading-tight">
               <p className="num text-xs text-ink/40 line-through">{formatCents(toCents(pool.retailPrice))}</p>
