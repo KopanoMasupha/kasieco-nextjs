@@ -155,11 +155,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [local, localDispatch] = useReducer(localReducer, initialLocal);
   const [shared, setShared] = useState<SharedState>(emptyShared);
   const [loading, setLoading] = useState(true);
+  const sharedVersion = useRef(0);
+  const refreshRequest = useRef(0);
+  const pendingActions = useRef(0);
 
   const refresh = useCallback(async () => {
+    const requestId = ++refreshRequest.current;
+    const version = sharedVersion.current;
     try {
       const res = await fetch("/api/state", { cache: "no-store" });
-      if (res.ok) setShared(await res.json());
+      if (res.ok) {
+        const nextState = await res.json();
+        if (
+          requestId === refreshRequest.current &&
+          version === sharedVersion.current &&
+          pendingActions.current === 0
+        ) {
+          setShared(nextState);
+        }
+      }
     } catch {
       // offline — keep what we have
     } finally {
@@ -194,22 +208,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       localDispatch(action as LocalAction);
       return {};
     }
+
+    pendingActions.current++;
+    sharedVersion.current++;
     try {
       const res = await fetch("/api/action", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(action),
       });
-      const { state: nextState, meta } = await res.json();
-      if (nextState) setShared(nextState);
+      const response = await res.json();
+      if (!res.ok) {
+        return { error: response.error || "Couldn't save this change. Please try again." };
+      }
+      const { meta } = response;
       if (!meta?.error && (action.type === "REGISTER_SHOP" || action.type === "SIGN_IN") && meta?.userId) {
         localDispatch({ type: "SIGNED_IN", userId: meta.userId, role: meta.role, shopId: meta.shopId, driverId: meta.driverId });
       }
       return meta || {};
     } catch {
       return { error: "Couldn't reach the server — check your connection and try again." };
+    } finally {
+      pendingActions.current--;
+      sharedVersion.current++;
+      if (pendingActions.current === 0) void refresh();
     }
-  }, []);
+  }, [refresh]);
 
   const state: CombinedState = useMemo(() => ({ ...shared, ...local }), [shared, local]);
   const value = useMemo(() => ({ state, dispatch, loading, refresh }), [state, dispatch, loading, refresh]);
