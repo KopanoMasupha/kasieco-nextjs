@@ -192,11 +192,11 @@ export type DealStatus =
   | "cancelled"; // target not reached — everyone refunded
 
 export const DEAL_STEPS: { status: DealStatus; label: string; ownerHelp: string }[] = [
-  { status: "open", label: "Joining", ownerHelp: "The deal is filling up. The price drops as more shops join." },
-  { status: "target-reached", label: "Full · pay", ownerHelp: "The deal is full. Every shop pays its share into TradeSafe escrow within 48 hours." },
-  { status: "payment-confirmed", label: "Paid", ownerHelp: "Every shop has paid and MzansiConnect has checked it. The order goes to the wholesaler next." },
-  { status: "ordered", label: "Ordered", ownerHelp: "MzansiConnect has paid the wholesaler. Your delivery is being planned." },
-  { status: "scheduled", label: "Booked", ownerHelp: "A driver and a time slot are booked for your shop." },
+  { status: "open", label: "Filling up", ownerHelp: "Shops are reserving units. The price drops as more shops join." },
+  { status: "target-reached", label: "Payment due", ownerHelp: "The deal is full and the lowest price is locked. Every shop pays its share into TradeSafe escrow within 48 hours." },
+  { status: "payment-confirmed", label: "Payments checked", ownerHelp: "Every shop has paid and MzansiConnect has checked it. The order goes to the wholesaler next." },
+  { status: "ordered", label: "Ordered", ownerHelp: "The wholesaler has the order. Your delivery is being planned." },
+  { status: "scheduled", label: "Scheduled", ownerHelp: "Your delivery day, time slot and driver are set." },
   { status: "out-for-delivery", label: "On the way", ownerHelp: "The driver has collected the stock and is driving the route." },
   { status: "delivered", label: "Delivered", ownerHelp: "Every shop has its stock. The deal is finished." },
 ];
@@ -267,7 +267,9 @@ export type PaymentTxType =
   | "deal-payment" // shop → TradeSafe escrow, its share of a full deal
   | "fee-payment" // shop → TradeSafe, a drop-point or re-delivery fee
   | "refund" // TradeSafe escrow → the shop's bank, because the deal was cancelled
-  | "fee-payout"; // TradeSafe → a drop-point shop's bank, its R5-a-unit earnings
+  | "fee-payout" // TradeSafe → a drop-point shop's bank, its R5-a-unit earnings
+  | "courier-payout" // TradeSafe → a driver's bank, after a shop-to-shop run is delivered
+  | "courier-refund"; // TradeSafe → the shop's bank, because a shop-to-shop run was cancelled
 
 /** TradeSafe's record of money moving for a shop. Append-only, integer cents. */
 export interface PaymentTx {
@@ -279,6 +281,8 @@ export interface PaymentTx {
   method?: PaymentMethodKind;
   dealId?: string;
   feeId?: string;
+  courierJobId?: string;
+  driverId?: string;
   note: string;
   createdAt: string;
 }
@@ -286,16 +290,17 @@ export interface PaymentTx {
 /** A small charge an owner owes after a missed delivery, paid through TradeSafe. */
 export interface Fee {
   id: string;
-  kind: "drop-point" | "redelivery";
+  kind: "drop-point" | "redelivery" | "courier";
   shopId: string;
   shopName: string;
-  dealId: string;
+  dealId?: string;
+  courierJobId?: string;
   amountCents: number;
   toShopId?: string; // drop point that earns it
   toShopName?: string;
   note: string;
   createdAt: string;
-  status: "due" | "paid";
+  status: "due" | "paid" | "cancelled";
   paidAt?: string;
   ref?: string;
 }
@@ -471,6 +476,51 @@ export interface ExchangeThread {
   status: "open" | "completed";
   createdAt: string;
 }
+
+export interface CourierLeg {
+  fromShopId: string;
+  fromShopName: string;
+  toShopId: string;
+  toShopName: string;
+  goods: string;
+  code: string;
+  status: "waiting" | "collected" | "delivered";
+  collectedAt?: string;
+  deliveredAt?: string;
+}
+
+export type CourierPayer = "me" | "them" | "split";
+export type CourierStatus = "awaiting-payment" | "assigned" | "accepted" | "on-the-way" | "delivered" | "cancelled";
+
+export interface CourierJob {
+  id: string;
+  ref: string;
+  threadId: string;
+  bookedByShopId: string;
+  shopIds: [string, string];
+  legs: CourierLeg[];
+  distanceKm: number;
+  feeCents: number;
+  payer: CourierPayer;
+  driverId: string;
+  driverName: string;
+  driverPhone: string;
+  vehicle: string;
+  plate: string;
+  status: CourierStatus;
+  day: string;
+  window: string;
+  createdAt: string;
+  deliveredAt?: string;
+  driverPaid?: boolean;
+}
+
+export const COURIER_BASE_CENTS = 4000;
+export const COURIER_PER_KM_CENTS = 900;
+export const COURIER_MIN_CENTS = 5000;
+export const COURIER_TWO_WAY_FACTOR = 1.6;
+export const COURIER_MAX_KM = 60;
+export const COURIER_WINDOWS = ["08:00 – 10:00", "10:00 – 12:00", "12:00 – 14:00", "14:00 – 16:00"];
 
 export type Role = "consumer" | "owner" | "verifier" | "admin" | "driver";
 

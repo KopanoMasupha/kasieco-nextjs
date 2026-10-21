@@ -17,11 +17,16 @@ import {
   REBOOK_TRIP_FEE_CENTS,
   REDELIVERY_FEE_CENTS,
   DealRating,
+  CourierJob,
+  CourierLeg,
+  COURIER_MAX_KM,
+  COURIER_WINDOWS,
 } from "../types";
 import { distanceKm } from "../geo";
 import { applyPledge, applyPayment, applyCancel, lockAtTarget, memberPositions, totalQtyOf, goodsTotal, serviceTotal, appendTx, auditPot, formatCents, paymentRef, potBalance, toCents, tierFor, unitCentsFor } from "../pot";
 import { appendPayment } from "../payments";
 import { buildTrip, splitFees } from "../planner";
+import { courierQuote, courierShares, nearestFreeDriver, roadKm } from "../courier";
 import { units } from "../units";
 
 export interface ReduceResult {
@@ -64,6 +69,24 @@ const ownersOf = (pool: Pool) => pool.commitments.map((c) => c.shopId);
 
 function code4() {
   return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function replaceJob(db: SharedDB, job: CourierJob): SharedDB {
+  return { ...db, courierJobs: db.courierJobs.map((j) => (j.id === job.id ? job : j)) };
+}
+
+function courierFullyPaid(db: SharedDB, jobId: string): SharedDB {
+  const job = db.courierJobs.find((j) => j.id === jobId);
+  if (!job || job.status !== "awaiting-payment") return db;
+  const shares = db.fees.filter((f) => f.courierJobId === jobId && f.status !== "cancelled");
+  if (shares.some((f) => f.status !== "paid")) return db;
+  const next = replaceJob(db, { ...job, status: "assigned" });
+  const day = new Date(job.day + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "short" });
+  const route = job.legs.map((l) => `${l.fromShopName} → ${l.toShopName}`).join(", then ");
+  return notify(next, [
+    { toRole: "driver", toId: job.driverId, text: `New shop-to-shop run on ${day}, ${job.window}: ${route} (${job.distanceKm} km). Pays ${formatCents(job.feeCents)}. Open My trips to accept.` },
+    ...job.shopIds.map((id) => ({ toRole: "owner" as const, toId: id, text: `Transport booked: ${job.driverName} (${job.vehicle}, ${job.plate}) will move the goods on ${day}, ${job.window}. The fee is held by TradeSafe until delivery.` })),
+  ]);
 }
 
 const shortName = (n: string) => n.split(" (")[0];
@@ -360,6 +383,7 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
       const fee = db.fees.find((f) => f.id === action.feeId && f.shopId === action.shopId);
       if (!fee) return fail(db, "Fee not found");
       if (fee.status === "paid") return fail(db, "This fee is already paid.");
+      if (fee.status === "cancelled") return fail(db, "This run was cancelled, so there's nothing to pay.");
       const ref = paymentRef();
       const now = new Date().toISOString();
       let payments = appendPayment(db.payments, { shopId: fee.shopId, type: "fee-payment", amountCents: fee.amountCents, method: action.method, dealId: fee.dealId, feeId: fee.id, note: fee.note, ref });
@@ -368,6 +392,10 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
       let next: SharedDB = { ...db, payments, fees: db.fees.map((f) => (f.id === fee.id ? { ...f, status: "paid" as const, paidAt: now, ref } : f)) };
       if (fee.kind === "drop-point" && fee.toShopId)
         next = notify(next, [{ toRole: "owner", toId: fee.toShopId, dealId: fee.dealId, text: `${fee.shopName} paid the ${formatCents(fee.amountCents)} drop-point fee. TradeSafe is paying it to your bank.` }]);
+      if (fee.kind === "courier" && fee.courierJobId) {
+        next = courierFullyPaid(next, fee.courierJobId);
+        meta.booked = next.courierJobs.find((j) => j.id === fee.courierJobId)?.status === "assigned";
+      }
       meta.ref = ref;
       return { db: next, meta };
     }
@@ -1022,6 +1050,151 @@ export function reduce(db: SharedDB, action: ServerAction): ReduceResult {
         },
         meta,
       };
+
+    case "BOOK_COURIER": {
+      const thread = db.threads.find((t) => t.id === action.threadId);
+      if (!thread) return fail(db, "Conversation not found");
+      if (![thread.shopAId, thread.shopBId].includes(action.shopId)) return fail(db, "Only the two shops in this deal can book transport.");
+      if (!thread.offers.some((o) => o.status === "accepted")) return fail(db, "Agree on an offer first, then book transport.");
+      if (thread.status === "completed") return fail(db, "This exchange is already completed.");
+      if (db.courierJobs.some((j) => j.threadId === thread.id && j.status !== "cancelled")) return fail(db, "Transport is already booked for this exchange.");
+      if (![thread.shopAId, thread.shopBId].includes(action.fromShopId)) return fail(db, "Choose which shop the goods leave from.");
+      if (!COURIER_WINDOWS.includes(action.window)) return fail(db, "Choose a time window.");
+      const today = new Date().toISOString().slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(action.day) || action.day < today) return fail(db, "Choose today or a later day.");
+      if (new Date(action.day + "T12:00:00").getDay() === 0) return fail(db, "Drivers don't run on Sundays. Choose Monday to Saturday.");
+      const me = verifiedShop(db, action.shopId);
+      const themId = action.shopId === thread.shopAId ? thread.shopBId : thread.shopAId;
+      const them = verifiedShop(db, themId);
+      if (!me || !them) return fail(db, "Both shops must be verified to book a driver.");
+      const from = action.fromShopId === me.id ? me : them;
+      const to = from.id === me.id ? them : me;
+      const km = roadKm(from, to);
+      const { feeCents, tooFar } = courierQuote(km, action.twoWay);
+      if (tooFar) return fail(db, `The shops are ${km} km apart. Shop-to-shop runs go up to ${COURIER_MAX_KM} km.`);
+      if (!action.goodsOut.trim()) return fail(db, "Say what goods the driver collects.");
+      const driver = nearestFreeDriver(db.drivers, db.courierJobs, from);
+      if (!driver) return fail(db, "No driver is free right now. Try again later.");
+      const legs: CourierLeg[] = [{ fromShopId: from.id, fromShopName: from.name, toShopId: to.id, toShopName: to.name, goods: action.goodsOut.trim(), code: code4(), status: "waiting" }];
+      if (action.twoWay) {
+        let back = code4();
+        while (back === legs[0].code) back = code4();
+        legs.push({ fromShopId: to.id, fromShopName: to.name, toShopId: from.id, toShopName: from.name, goods: action.goodsBack?.trim() || "Goods in return", code: back, status: "waiting" });
+      }
+      const job: CourierJob = {
+        id: uid("run"),
+        ref: `RUN-${Math.floor(10000 + Math.random() * 90000)}`,
+        threadId: thread.id,
+        bookedByShopId: me.id,
+        shopIds: [thread.shopAId, thread.shopBId],
+        legs,
+        distanceKm: km,
+        feeCents,
+        payer: action.payer,
+        driverId: driver.id,
+        driverName: driver.name,
+        driverPhone: driver.phone,
+        vehicle: driver.vehicle,
+        plate: driver.plate,
+        status: "awaiting-payment",
+        day: action.day,
+        window: action.window,
+        createdAt: new Date().toISOString(),
+      };
+      let next: SharedDB = { ...db, courierJobs: [...db.courierJobs, job] };
+      const shares = courierShares(feeCents, action.payer, me.id, them.id);
+      for (const share of shares) {
+        const shop = share.shopId === me.id ? me : them;
+        next = addFee(next, { kind: "courier", shopId: shop.id, shopName: shop.name, courierJobId: job.id, amountCents: share.cents, note: `Transport ${from.name} → ${to.name}${action.twoWay ? " and back" : ""} (${job.ref})` });
+      }
+      next = notify(next, [{
+        toRole: "owner",
+        toId: them.id,
+        text: `${me.name} booked a MzansiConnect driver to move your exchange goods (${from.name} → ${to.name}${action.twoWay ? " and back" : ""}).${shares.some((share) => share.shopId === them.id) ? ` Your share is ${formatCents(shares.find((share) => share.shopId === them.id)!.cents)} — pay it on the Payments page.` : ` ${me.name} is paying the fee.`}`,
+      }]);
+      meta.jobId = job.id;
+      meta.feeCents = feeCents;
+      return { db: next, meta };
+    }
+
+    case "CANCEL_COURIER": {
+      const job = db.courierJobs.find((j) => j.id === action.jobId);
+      if (!job) return fail(db, "Booking not found");
+      if (!job.shopIds.includes(action.shopId)) return fail(db, "Only the two shops can cancel this run.");
+      if (!["awaiting-payment", "assigned", "accepted"].includes(job.status)) return fail(db, job.status === "cancelled" ? "Already cancelled." : "The driver already has the goods, so the run can't be cancelled now.");
+      const byName = db.shops.find((s) => s.id === action.shopId)?.name ?? "A shop";
+      let payments = db.payments;
+      const refunds: { shopId: string; cents: number }[] = [];
+      const fees = db.fees.map((fee) => {
+        if (fee.courierJobId !== job.id) return fee;
+        if (fee.status === "paid") {
+          refunds.push({ shopId: fee.shopId, cents: fee.amountCents });
+          payments = appendPayment(payments, { shopId: fee.shopId, type: "courier-refund", amountCents: fee.amountCents, courierJobId: job.id, feeId: fee.id, note: `Refund: transport ${job.ref} cancelled` });
+        }
+        return fee.status === "due" ? { ...fee, status: "cancelled" as const } : fee;
+      });
+      let next: SharedDB = { ...replaceJob(db, { ...job, status: "cancelled" }), payments, fees };
+      next = notify(next, [
+        ...job.shopIds.map((id) => {
+          const refund = refunds.find((item) => item.shopId === id);
+          return { toRole: "owner" as const, toId: id, text: `${byName} cancelled the transport (${job.ref}).${refund ? ` TradeSafe is refunding your ${formatCents(refund.cents)} (usually 1–3 working days).` : ""}` };
+        }),
+        ...(job.status !== "awaiting-payment" ? [{ toRole: "driver" as const, toId: job.driverId, text: `The shop-to-shop run ${job.ref} was cancelled by ${byName}. You don't need to go.` }] : []),
+      ]);
+      meta.refunds = refunds.length;
+      return { db: next, meta };
+    }
+
+    case "COURIER_ACCEPT": {
+      const job = db.courierJobs.find((j) => j.id === action.jobId && j.driverId === action.driverId);
+      if (!job) return fail(db, "Run not found");
+      if (job.status !== "assigned") return fail(db, job.status === "awaiting-payment" ? "Wait until the shops have paid the fee." : "This run is already accepted.");
+      const next = replaceJob(db, { ...job, status: "accepted" });
+      return { db: notify(next, job.shopIds.map((id) => ({ toRole: "owner" as const, toId: id, text: `${job.driverName} accepted your transport run (${job.ref}) for ${job.window}.` })), job.driverName, "driver"), meta };
+    }
+
+    case "COURIER_COLLECT": {
+      const job = db.courierJobs.find((j) => j.id === action.jobId && j.driverId === action.driverId);
+      if (!job) return fail(db, "Run not found");
+      if (!["accepted", "on-the-way"].includes(job.status)) return fail(db, job.status === "assigned" ? "Accept the run first." : "This run can't be collected now.");
+      const leg = job.legs[action.leg];
+      if (!leg) return fail(db, "Leg not found");
+      if (leg.status !== "waiting") return fail(db, "Already collected.");
+      if (action.leg > 0 && job.legs[action.leg - 1].status !== "delivered") return fail(db, "Deliver the first load before collecting the return load.");
+      const legs = job.legs.map((item, index) => index === action.leg ? { ...item, status: "collected" as const, collectedAt: new Date().toISOString() } : item);
+      const next = replaceJob(db, { ...job, legs, status: "on-the-way" });
+      return { db: notify(next, [{ toRole: "owner", toId: leg.toShopId, text: `${job.driverName} collected ${leg.goods} at ${leg.fromShopName} and is on the way to you. Have your 4-digit code ready.` }], job.driverName, "driver"), meta };
+    }
+
+    case "COURIER_DELIVER": {
+      const job = db.courierJobs.find((j) => j.id === action.jobId && j.driverId === action.driverId);
+      if (!job) return fail(db, "Run not found");
+      const leg = job.legs[action.leg];
+      if (!leg) return fail(db, "Leg not found");
+      if (leg.status !== "collected") return fail(db, leg.status === "waiting" ? "Collect the goods first." : "Already delivered.");
+      if (action.code.trim() !== leg.code) return fail(db, `That code is wrong. Ask ${leg.toShopName} to read the code from their Willing buyer & seller chat. Don't hand over the goods until it matches.`);
+      const now = new Date().toISOString();
+      const legs = job.legs.map((item, index) => index === action.leg ? { ...item, status: "delivered" as const, deliveredAt: now } : item);
+      const done = legs.every((item) => item.status === "delivered");
+      let next = replaceJob(db, { ...job, legs, status: done ? "delivered" : "on-the-way", deliveredAt: done ? now : undefined, driverPaid: done || undefined });
+      next = {
+        ...next,
+        threads: next.threads.map((thread) => {
+          if (thread.id !== job.threadId) return thread;
+          const confirmedBy = Array.from(new Set([...thread.confirmedBy, leg.toShopId]));
+          const both = confirmedBy.includes(thread.shopAId) && confirmedBy.includes(thread.shopBId);
+          return { ...thread, confirmedBy, status: both ? "completed" as const : thread.status };
+        }),
+      };
+      if (done) next = { ...next, payments: appendPayment(next.payments, { shopId: "", driverId: job.driverId, type: "courier-payout", amountCents: job.feeCents, courierJobId: job.id, note: `${job.driverName}: shop-to-shop run ${job.ref}` }) };
+      next = notify(next, [
+        { toRole: "owner", toId: leg.toShopId, text: `Delivered: ${leg.goods} from ${leg.fromShopName} handed over (code checked).` },
+        { toRole: "owner", toId: leg.fromShopId, text: `${leg.toShopName} received ${leg.goods}.` },
+        ...(done ? [{ toRole: "driver" as const, toId: job.driverId, text: `Run ${job.ref} done. TradeSafe is paying you ${formatCents(job.feeCents)}.` }] : []),
+      ], job.driverName, "driver");
+      meta.done = done;
+      return { db: next, meta };
+    }
 
     // ---------------- training & compliance ----------------
 

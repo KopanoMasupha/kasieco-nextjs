@@ -32,19 +32,19 @@ export default function PoolCard({ pool, myShopId, compact, href }: { pool: Pool
   const rating = wholesalerRating(state.pools, pool.wholesalerId);
 
   return (
-    <Link href={href ?? `/owner/pools/${pool.id}`} className={clsx("card group flex items-center gap-4 transition-shadow hover:shadow-lg", compact ? "p-3" : "p-4")}>
+    <Link href={href ?? `/owner/pools/${pool.id}`} className={clsx("card group flex items-start gap-3 overflow-hidden transition-shadow hover:shadow-lg", compact ? "p-3" : "p-4")}>
       <div className="relative shrink-0">
-        <ProductImage name={pool.productName} src={pool.photo} count={itemsPerUnit(pool.unitLabel)} size={compact ? 64 : 76} />
+        <ProductImage name={pool.productName} src={pool.photo} count={itemsPerUnit(pool.unitLabel)} size={compact ? 56 : 68} />
         {pct > 0 && pool.status === "open" && (
           <span className="absolute -bottom-1 -left-1 rounded-full bg-leaf px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">−{pct}%</span>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
-          <p className="font-semibold leading-snug text-ink">{pool.productName}</p>
+        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
+          <p className="text-sm font-semibold leading-snug text-ink">{pool.productName}</p>
           {mine && <span className="shrink-0 rounded-full bg-ember/10 px-2 py-0.5 text-[11px] font-semibold text-ember-dark">Joined · {mine.qty}</span>}
         </div>
-        <p className="text-xs text-ink/45">
+        <p className="truncate text-xs text-ink/45">
           {rating && (
             <span className="mr-1 inline-flex items-center gap-0.5 font-semibold text-ink/70">
               <Star size={11} className="text-[#F2A93B]" fill="currentColor" strokeWidth={0} /> {rating.avg.toFixed(1)} ·
@@ -54,21 +54,23 @@ export default function PoolCard({ pool, myShopId, compact, href }: { pool: Pool
         </p>
         {pool.status === "open" ? (
           <>
-            <p className="mt-1.5 text-sm">
+            <p className="mt-1 text-sm">
               <span className="num text-xs text-ink/40 line-through">{formatCents(retail)}</span>
-              <span className="num ml-1.5 font-display text-lg font-bold text-leaf">{formatCents(best)}</span>
+              <span className="num ml-1 font-display text-base font-bold text-leaf">{formatCents(best)}</span>
+            </p>
+            <div className="flex flex-wrap gap-1 mt-1">
               {badges.map((b) => (
-                <span key={b.label} className={clsx("ml-1.5 rounded-full px-1.5 py-0.5 align-middle text-[10px] font-bold text-white", b.tone === "ember" ? "bg-ember" : b.tone === "leaf" ? "bg-leaf" : "bg-ink")}>
+                <span key={b.label} className={clsx("rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white", b.tone === "ember" ? "bg-ember" : b.tone === "leaf" ? "bg-leaf" : "bg-ink")}>
                   {b.label}
                 </span>
               ))}
-            </p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/5">
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/5">
               <div className="h-full rounded-full bg-ember transition-all" style={{ width: `${Math.min(100, (qty / pool.minQty) * 100)}%` }} />
             </div>
-            <p className="mt-1 flex flex-wrap items-center justify-between gap-x-2 text-[11px] text-ink/45">
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink/45">
               <span className="flex items-center gap-1">
-                <Users size={11} /> {pool.commitments.length} shops in · <span className={clsx(left / pool.minQty <= 0.35 && "font-semibold text-ember-dark")}>{left} left</span>
+                <Users size={11} /> {pool.commitments.length} in · <span className={clsx(left / pool.minQty <= 0.35 && "font-semibold text-ember-dark")}>{left} left</span>
               </span>
               <span className="flex items-center gap-1">
                 <Clock size={11} /> {closesIn(pool.closesAt)}
@@ -79,7 +81,7 @@ export default function PoolCard({ pool, myShopId, compact, href }: { pool: Pool
           <p className="mt-1.5 inline-flex rounded-full bg-ink/5 px-2.5 py-1 text-xs font-semibold text-ink/70">{pool.status === "cancelled" ? "Cancelled · refunded" : step?.label}</p>
         )}
       </div>
-      <ArrowRight size={16} className="shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5" />
+      <ArrowRight size={16} className="mt-1 shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 }

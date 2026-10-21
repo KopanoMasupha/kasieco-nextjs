@@ -7,6 +7,7 @@ import { useStore, useLiveRefresh, useMyDriver } from "@/lib/store";
 import { formatCents } from "@/lib/pot";
 import { Trip } from "@/lib/types";
 import { PageSkeleton } from "@/components/Skeleton";
+import CourierRunCard from "@/components/driver/CourierRunCard";
 
 function tripStatusText(t: Trip) {
   const done = t.stops.filter((s) => s.status === "delivered").length;
@@ -25,7 +26,10 @@ export default function DriverHome() {
   const mine = state.trips.filter((t) => t.driverId === driver.id);
   const active = mine.filter((t) => t.status !== "completed").sort((a, b) => a.date.localeCompare(b.date));
   const done = mine.filter((t) => t.status === "completed");
-  const earned = done.reduce((s, t) => s + t.feeCents, 0);
+  const runs = state.courierJobs.filter((job) => job.driverId === driver.id && !["awaiting-payment", "cancelled"].includes(job.status));
+  const openRuns = runs.filter((job) => job.status !== "delivered");
+  const doneRuns = runs.filter((job) => job.status === "delivered");
+  const earned = done.reduce((s, t) => s + t.feeCents, 0) + doneRuns.reduce((s, job) => s + job.feeCents, 0);
 
   return (
     <div className="space-y-6">
@@ -66,6 +70,15 @@ export default function DriverHome() {
         </div>
       </section>
 
+      <section>
+        <h2 className="mb-1 font-semibold text-ink">Shop-to-shop runs ({openRuns.length})</h2>
+        <p className="mb-3 text-xs text-ink/50">Moving goods between shops that traded on Willing buyer &amp; seller. The fee is held by TradeSafe.</p>
+        <div className="space-y-3">
+          {openRuns.map((job) => <CourierRunCard key={job.id} job={job} driverId={driver.id} />)}
+          {openRuns.length === 0 && <div className="card p-6 text-sm text-ink/50">No shop-to-shop runs right now.</div>}
+        </div>
+      </section>
+
       {done.length > 0 && (
         <section>
           <h2 className="mb-3 font-semibold text-ink">Finished trips</h2>
@@ -73,6 +86,15 @@ export default function DriverHome() {
             {done.map((t) => (
               <TripRow key={t.id} t={t} productName={state.pools.find((p) => p.id === t.dealId)?.productName} />
             ))}
+          </div>
+        </section>
+      )}
+
+      {doneRuns.length > 0 && (
+        <section>
+          <h2 className="mb-3 font-semibold text-ink">Finished runs</h2>
+          <div className="space-y-2">
+            {doneRuns.map((job) => <CourierRunCard key={job.id} job={job} driverId={driver.id} />)}
           </div>
         </section>
       )}

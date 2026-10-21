@@ -191,3 +191,52 @@ body {
     animation: none;
   }
 }
+
+/* onboarding guide (Thuli): gentle bob, blink, wave — off for reduced motion */
+@keyframes guide-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes guide-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes guide-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
+}
+.guide-bob {
+  animation: guide-bob 3.2s ease-in-out infinite;
+}
+.guide-blink {
+  animation: guide-blink 4.5s infinite;
+}
+.guide-wave {
+  animation: guide-wave 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-bob,
+  .guide-blink,
+  .guide-wave {
+    animation: none;
+  }
+}

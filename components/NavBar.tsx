@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import {
+  Sparkles,
+  Bot,
   MapPin,
   Store,
   ShoppingCart,
@@ -27,8 +29,9 @@ import { isVerified } from "@/lib/compliance";
 import { amountDue, dealsToPay, feesDue } from "@/lib/payments";
 import { formatCents } from "@/lib/pot";
 import { ADMIN_ROLE_LABEL } from "@/lib/types";
+import { startTour } from "@/lib/tour";
 
-type NavLink = { href: string; label: string; icon: any; exact?: boolean; match?: string[]; badge?: number; dot?: boolean };
+type NavLink = { href: string; label: string; icon: any; exact?: boolean; match?: string[]; badge?: number; dot?: boolean; dataTour?: string };
 
 export default function NavBar() {
   const { state, dispatch } = useStore();
@@ -57,14 +60,15 @@ export default function NavBar() {
   let links: NavLink[] = [{ href: "/consumer", label: "Find shops", icon: MapPin, exact: true }];
   if (me?.role === "owner")
     links = [
-      { href: "/owner", label: "Home", icon: LayoutGrid, exact: true },
-      { href: "/owner/pools", label: "Buy", icon: ShoppingCart },
-      { href: "/owner/payments", label: "Payments", icon: Wallet, badge: dueCount || undefined },
-      { href: "/owner/exchange", label: "Willing buyer & seller", icon: Handshake },
+      { href: "/owner", label: "Home", icon: LayoutGrid, exact: true, dataTour: "nav-home" },
+      { href: "/owner/pools", label: "Buy", icon: ShoppingCart, dataTour: "nav-buy" },
+      { href: "/owner/payments", label: "Payments", icon: Wallet, badge: dueCount || undefined, dataTour: "nav-payments" },
+      { href: "/owner/exchange", label: "Willing buyer & seller", icon: Handshake, dataTour: "nav-exchange" },
       { href: "/owner/partner", label: "Drop point", icon: Store, badge: holdingForOthers || undefined },
       { href: "/owner/stock", label: "My stock", icon: Boxes },
-      { href: "/owner/funding", label: "Funding", icon: Landmark },
+      { href: "/owner/funding", label: "Funding", icon: Landmark, dataTour: "nav-funding" },
       { href: "/owner/compliance", label: "Compliance", icon: ShieldCheck, dot: myShop && !isVerified(myShop), match: ["/owner/compliance", "/owner/learn", "/owner/training"] },
+      { href: "/owner/cart", label: "Cart", icon: ShoppingCart, dataTour: "nav-cart" },
     ];
   if (me?.role === "admin")
     links = [
@@ -87,6 +91,7 @@ export default function NavBar() {
           key={l.href}
           href={l.href}
           aria-current={active ? "page" : undefined}
+          data-tour={l.dataTour}
           className={clsx(
             "relative flex items-center gap-2.5 whitespace-nowrap text-sm font-medium transition-colors",
             mode === "side" ? "rounded-xl px-3 py-2.5" : "rounded-full border px-3.5 py-2",
@@ -183,6 +188,18 @@ export default function NavBar() {
                     )}
                   </div>
                   <div className="my-1 h-px bg-ink/5" />
+                  {me.role === "owner" && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (pathname !== "/owner") router.push("/owner");
+                        startTour();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium text-ink/80 hover:bg-sand-100"
+                    >
+                      <Sparkles size={15} className="text-ember" /> Take the tour with Thuli
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setMenuOpen(false);

@@ -1,0 +1,1 @@
+import { startTour } from "@/lib/tour";

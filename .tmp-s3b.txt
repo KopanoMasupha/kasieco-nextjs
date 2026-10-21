@@ -1,0 +1,221 @@
+          </ul>
+          <Link href="/admin/deals" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-ember-dark">
+            All deals <ArrowRight size={14} />
+          </Link>
+        </section>
+```
+
+**`components/pot/PoolCard.tsx`** (87 lines). Replace the whole file with this:
+
+```tsx
+"use client";
+
+import Link from "next/link";
+import clsx from "clsx";
+import { ArrowRight, Users, Clock } from "lucide-react";
+import { Pool, DEAL_STEPS } from "@/lib/types";
+import { formatCents, toCents, totalQtyOf, memberPositions, unitCentsFor } from "@/lib/pot";
+import ProductImage from "@/components/ProductImage";
+import { dealBadges, itemsPerUnit, wholesalerRating } from "@/lib/products";
+import { useStore } from "@/lib/store";
+import { Star } from "lucide-react";
+
+function closesIn(iso: string) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "closed";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  return d > 0 ? `${d}d ${h}h` : `${h}h`;
+}
+
+/** A wholesaler deal as a card. `href` lets admins link to their control room instead. */
+export default function PoolCard({ pool, myShopId, compact, href }: { pool: Pool; myShopId?: string; compact?: boolean; href?: string }) {
+  const qty = totalQtyOf(pool);
+  const best = unitCentsFor(pool, pool.minQty); // what everyone pays when it fills
+  const retail = toCents(pool.retailPrice);
+  const pct = retail > 0 ? Math.round(((retail - best) / retail) * 100) : 0;
+  const mine = memberPositions(pool).find((m) => m.shopId === myShopId);
+  const left = pool.minQty - qty;
+  const step = DEAL_STEPS.find((s) => s.status === pool.status);
+  const badges = dealBadges(pool);
+  const { state } = useStore();
+  const rating = wholesalerRating(state.pools, pool.wholesalerId);
+
+  return (
+    <Link href={href ?? `/owner/pools/${pool.id}`} className={clsx("card group flex items-start gap-3 overflow-hidden transition-shadow hover:shadow-lg", compact ? "p-3" : "p-4")}>
+      <div className="relative shrink-0">
+        <ProductImage name={pool.productName} src={pool.photo} count={itemsPerUnit(pool.unitLabel)} size={compact ? 56 : 68} />
+        {pct > 0 && pool.status === "open" && (
+          <span className="absolute -bottom-1 -left-1 rounded-full bg-leaf px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">−{pct}%</span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
+          <p className="text-sm font-semibold leading-snug text-ink">{pool.productName}</p>
+          {mine && <span className="shrink-0 rounded-full bg-ember/10 px-2 py-0.5 text-[11px] font-semibold text-ember-dark">Joined · {mine.qty}</span>}
+        </div>
+        <p className="truncate text-xs text-ink/45">
+          {rating && (
+            <span className="mr-1 inline-flex items-center gap-0.5 font-semibold text-ink/70">
+              <Star size={11} className="text-[#F2A93B]" fill="currentColor" strokeWidth={0} /> {rating.avg.toFixed(1)} ·
+            </span>
+          )}
+          {pool.supplierName} · {pool.unitLabel}
+        </p>
+        {pool.status === "open" ? (
+          <>
+            <p className="mt-1 text-sm">
+              <span className="num text-xs text-ink/40 line-through">{formatCents(retail)}</span>
+              <span className="num ml-1 font-display text-base font-bold text-leaf">{formatCents(best)}</span>
+            </p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {badges.map((b) => (
+                <span key={b.label} className={clsx("rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white", b.tone === "ember" ? "bg-ember" : b.tone === "leaf" ? "bg-leaf" : "bg-ink")}>
+                  {b.label}
+                </span>
+              ))}
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/5">
+              <div className="h-full rounded-full bg-ember transition-all" style={{ width: `${Math.min(100, (qty / pool.minQty) * 100)}%` }} />
+            </div>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink/45">
+              <span className="flex items-center gap-1">
+                <Users size={11} /> {pool.commitments.length} in · <span className={clsx(left / pool.minQty <= 0.35 && "font-semibold text-ember-dark")}>{left} left</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={11} /> {closesIn(pool.closesAt)}
+              </span>
+            </p>
+          </>
+        ) : (
+          <p className="mt-1.5 inline-flex rounded-full bg-ink/5 px-2.5 py-1 text-xs font-semibold text-ink/70">{pool.status === "cancelled" ? "Cancelled · refunded" : step?.label}</p>
+        )}
+      </div>
+      <ArrowRight size={16} className="mt-1 shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5" />
+    </Link>
+  );
+}
+```
+
+---
+
+## 5. Tests up to 139 and README updated
+
+- **139 automated checks**, up from 110. All pass.
+- Run them with `npm test` or `npx tsx scripts/test-flow.ts`. Plain `node` gives `ERR_MODULE_NOT_FOUND`.
+- `README.md` has new sections on the chatbot, the Due now box and the admin layout fixes, and every test count now says 139.
+
+
+---
+
+## 6. Tastic rice photo
+
+Rice 10 kg deals now show a real **Tastic Long Grain Parboiled White Rice 10 kg** bag instead of the drawn picture.
+
+- New image: `public/products/rice-10kg.jpg`
+- New line in `lib/productPhotos.ts`:
+
+```ts
+{ kind: "rice", size: "10kg", file: "rice-10kg.jpg", alt: "Tastic Long Grain Parboiled White Rice 10 kg" },
+```
+
+
+### The code
+
+**`lib/productPhotos.ts`** (26 lines). Replace the whole file with this:
+
+```ts
+/**
+ * Real product photos (in /public/products). A deal or shelf item gets the
+ * photo of the same kind of product in the same pack size; if that size isn't
+ * here, the same kind in another size. Anything else keeps its drawn pack shot
+ * until someone uploads a photo.
+ */
+import { ProductKind, productKind, splitSize } from "./products";
+import { photoUrl } from "./photoUrl";
+
+const PHOTOS: { kind: ProductKind; size?: string; file: string; alt: string }[] = [
+  { kind: "maize", size: "5kg", file: "maize-5kg.jpg", alt: "Iwisa Super Maize Meal 5 kg" },
+  { kind: "maize", size: "10kg", file: "maize-10kg.jpg", alt: "White Star Super Maize Meal 10 kg" },
+  { kind: "sugar", size: "2kg", file: "sugar-2kg.jpg", alt: "Best Choice pure white sugar 2 kg" },
+  { kind: "flour", size: "10kg", file: "flour-10kg.jpg", alt: "Snowflake cake wheat flour 10 kg" },
+  { kind: "oil", size: "750ml", file: "oil-750ml.jpg", alt: "B-well cooking oil blend 750 ml" },
+  { kind: "soap", size: "175g", file: "soap-175g.jpg", alt: "Dettol Original bath soap 175 g" },
+  { kind: "rice", size: "10kg", file: "rice-10kg.jpg", alt: "Tastic Long Grain Parboiled White Rice 10 kg" },
+];
+
+export function stockPhoto(name: string): { src: string; alt: string } | undefined {
+  const kind = productKind(name);
+  if (kind === "generic") return undefined;
+  const size = splitSize(name).size?.toLowerCase();
+  const hit = PHOTOS.find((p) => p.kind === kind && p.size === size) ?? PHOTOS.find((p) => p.kind === kind);
+  return hit ? { src: photoUrl(hit.file), alt: hit.alt } : undefined;
+}
+```
+
+Save the Tastic photo as `public/products/rice-10kg.jpg`.
+
+---
+
+## 7. Bigger "How it works" text on the landing page
+
+**File changed:** `components/HowItWorks.tsx`
+
+| Part | Before | Now |
+|---|---|---|
+| Eyebrow label | default | `text-base sm:text-lg` |
+| Heading | `text-4xl sm:text-5xl` | `text-5xl sm:text-6xl` |
+| Subtitle | `text-lg` | `text-xl` |
+
+```tsx
+<p className="eyebrow text-base !text-ember-dark sm:text-lg">How it works</p>
+<h2 id="how-it-works" className="mt-2 text-5xl font-bold leading-tight text-ink sm:text-6xl">
+  Four steps from reserving to delivery
+</h2>
+<p className="mt-3 text-xl text-ink/60">You only pay once a deal is full, and every rand is held safely until your stock arrives.</p>
+```
+
+
+### The code
+
+**`components/HowItWorks.tsx`** (97 lines). Replace the whole file with this:
+
+```tsx
+"use client";
+
+import clsx from "clsx";
+import { motion } from "framer-motion";
+import { ArrowRight, Hand, Lock, Truck, Users2 } from "lucide-react";
+
+/**
+ * The one explanation of how buying works, used on the landing page (big)
+ * and the Buy page (strip). Same four words everywhere in the app:
+ * Reserve → Deal fills → Pay within 48 hours → Delivered.
+ */
+export const HOW_IT_WORKS = [
+  {
+    icon: Hand,
+    title: "Reserve",
+    when: "Today",
+    body: "Pick a deal and how many you want. Reserving is free: you pay R0 today.",
+    tag: "You pay R0",
+  },
+  {
+    icon: Users2,
+    title: "The deal fills",
+    when: "As shops join",
+    body: "Every shop that joins lowers the price. When it's full, the lowest price locks for everyone.",
+    tag: "Price locks",
+  },
+  {
+    icon: Lock,
+    title: "Pay within 48 hours",
+    when: "Once it's full",
+    body: "Pay your share through TradeSafe escrow: instant EFT, card or cash at a till. If a deal never fills, you never pay.",
+    tag: "Held safely",
+  },
+  {
+    icon: Truck,
+    title: "Delivered to your shop",
+    when: "On your chosen day",
+    body: "A driver brings it to your door. Count your stock, then give the driver your 4-digit code.",

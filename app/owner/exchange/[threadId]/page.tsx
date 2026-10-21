@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowLeftRight, CheckCircle2, Handshake, Scale, Send, X } fr
 import { useStore, useLiveRefresh } from "@/lib/store";
 import { fairUnitPrice } from "@/lib/exchange";
 import { formatRand } from "@/lib/pricing";
+import CourierCard from "@/components/exchange/CourierCard";
 
 function FairnessBadge({ give, receive, cash }: { give: number; receive: number; cash: number }) {
   // from the sender's point of view: what goes out (goods + cash) vs what comes in
@@ -274,9 +275,13 @@ export default function ThreadPage({ params }: { params: { threadId: string } })
         </div>
       )}
 
+      {isParticipant && acceptedOffer && me && other && <CourierCard thread={thread} me={me} other={other} accepted={acceptedOffer} />}
+
       {isParticipant && acceptedOffer && thread.status === "open" && (
         <div className="card p-4">
-          <p className="text-sm font-medium text-ink">Accepted. Confirm once goods change hands.</p>
+          <p className="text-sm font-medium text-ink">
+            Accepted. Confirm once goods change hands{state.courierJobs.some((job) => job.threadId === thread.id && job.status !== "cancelled") ? " (a driver delivery confirms it for the receiving shop)" : ""}.
+          </p>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-ink/50">
             <span>
               {shopA?.name}: {thread.confirmedBy.includes(thread.shopAId) ? "confirmed ✓" : "not yet"}

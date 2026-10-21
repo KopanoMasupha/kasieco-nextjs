@@ -128,7 +128,7 @@ export default function AdminOverview() {
         )}
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2">
         {/* pipeline */}
         <section className="card p-5">
           <h2 className="mb-3 font-semibold text-ink">Deals by step</h2>
@@ -136,12 +136,10 @@ export default function AdminOverview() {
             {DEAL_STEPS.map((s) => {
               const list = by(s.status);
               return (
-                <li key={s.status} className="flex items-center justify-between gap-3 rounded-xl bg-sand-50 px-3 py-2 text-sm">
-                  <span className="text-ink/70">{s.label}</span>
-                  <span className="flex items-center gap-2">
-                    <span className="truncate text-xs text-ink/45">{list.map((p) => p.productName.split(" ").slice(0, 2).join(" ")).join(", ")}</span>
-                    <span className={clsx("flex h-6 min-w-[24px] items-center justify-center rounded-full px-1.5 text-xs font-bold", list.length ? "bg-ink text-white" : "bg-ink/5 text-ink/35")}>{list.length}</span>
-                  </span>
+                <li key={s.status} className="flex items-center gap-2 rounded-xl bg-sand-50 px-3 py-2 text-sm">
+                  <span className="shrink-0 text-ink/70">{s.label}</span>
+                  <span className="min-w-0 flex-1 truncate text-right text-xs text-ink/45">{list.map((p) => p.productName.split(" ").slice(0, 2).join(" ")).join(", ")}</span>
+                  <span className={clsx("flex h-6 min-w-[24px] shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold", list.length ? "bg-ink text-white" : "bg-ink/5 text-ink/35")}>{list.length}</span>
                 </li>
               );
             })}

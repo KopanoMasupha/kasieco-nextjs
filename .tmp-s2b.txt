@@ -1,0 +1,181 @@
+    links: [{ label: "My trips", href: "/driver" }],
+  },
+  {
+    id: "proof",
+    keywords: ["proof", "trust", "ledger", "see payments", "transparent", "audit", "where is my money"],
+    answer:
+      "Every deal has a live money list: every payment in and out, with a reference number and the running balance. The 'Ledger proof' panel re-checks the whole pot in your own browser — money in minus money out equals the balance, it never went below R0, and it ends at exactly R0 when the deal is finished.",
+    links: [{ label: "Open a deal", href: "/owner/pools" }],
+  },
+  {
+    id: "exchange",
+    keywords: ["exchange", "swap", "trade", "short", "extra", "fair", "unfair", "willing", "seller", "sell to"],
+    answer:
+      "Willing buyer & seller lets verified shops sell or swap stock with each other. Post what you have extra of or are short on, and you'll see matches nearby. When you make an offer, MzansiConnect shows what each side is worth at the average shelf price kasi shops charge, and suggests a cash top-up so it's fair. Nothing happens until both shops accept, and both confirm the hand-over.",
+    links: [{ label: "Willing buyer & seller", href: "/owner/exchange" }],
+  },
+  {
+    id: "verify",
+    keywords: ["verify", "verified", "compliance", "register", "registration", "documents", "badge", "cipc", "permit", "certificate"],
+    answer:
+      "You can't register a shop without passing the compliance quiz. It's the last step of registration: read four short lessons (registration, food safety, by-laws), answer the quiz, and score at least 70%. Pass and your shop is registered and Verified straight away, with a certificate. Didn't pass? Your wrong answers are shown — fix them and try again. You can still upload documents (CIPC, Certificate of Acceptability, trading permit) later for a verifier to keep on file.",
+    links: [
+      { label: "Compliance", href: "/owner/compliance" },
+      { label: "Free course", href: "/owner/learn" },
+    ],
+  },
+  {
+    id: "funding",
+    keywords: ["fund", "funding", "grant", "loan", "money for my business", "nyda", "sefa", "sedfa", "nef", "support", "opportunit"],
+    answer:
+      "The Funding page lists grants, loans and programmes for township businesses — like the Spaza Shop Support Fund, TREP and the NYDA Grant — with what you get, who qualifies and how to apply. Answer a few questions once and MzansiConnect pre-checks which ones fit you. You can track each one from 'saved' to 'applied'. Always confirm details on the official site, because programmes change.",
+    links: [{ label: "Funding & support", href: "/owner/funding" }],
+  },
+  {
+    id: "stock-ai",
+    keywords: ["stock", "ai", "insight", "run out", "running low", "overstock", "sales", "record a sale"],
+    answer:
+      "The stock assistant on 'My stock' reads your stock counts and the sales you log, works out how many days of stock you have left, and flags items about to run out or sitting on the shelf. For extra stock it looks for a nearby verified shop that's short on the same thing, so you can offer it on Willing buyer & seller.",
+    links: [{ label: "My stock", href: "/owner/stock" }],
+  },
+  {
+    id: "transport",
+    keywords: ["transport", "driver", "bakkie", "car", "move the goods", "collect", "fetch", "delivery between", "courier", "lift"],
+    answer:
+      "No car? Once both shops accept an offer on Willing buyer & seller, tap 'Book transport' in the chat. Choose which way the goods go (or both ways for a swap), a day and time, and who pays: you, them, or 50/50. The fee is R40 plus R9 a km (×1.6 both ways) and is held by TradeSafe until the goods arrive. The shop receiving the goods reads its 4-digit code to the driver, and then the driver is paid. You can cancel for a full refund until the driver collects.",
+    links: [{ label: "Willing buyer & seller", href: "/owner/exchange" }],
+  },
+  {
+    id: "cart",
+    keywords: ["my cart", "shopping bag", "checkout", "check out", "add to cart", "basket", "reserve all"],
+    answer:
+      "On Buy, tap 'Add to cart' on any deal (or open a deal and choose how many). The bag icon at the top shows your cart. At checkout you set delivery days once for everything, then tap 'Reserve all · pay R0 today'. Nothing is paid at checkout: you pay each deal within 48 hours of it filling, and the Due now bar shows the countdown.",
+    links: [{ label: "Open my cart", href: "/owner/cart" }],
+  },
+  {
+    id: "customer-buy",
+    keywords: ["order online", "buy online", "deliver to me", "customer pay", "customer order"],
+    answer:
+      "Customers can't order or pay online yet. Right now you can find verified shops near you, see what they have on the shelf and their prices, check if they're open, and call, WhatsApp or get directions. Online ordering is on our roadmap for a later phase.",
+    links: [{ label: "Find shops", href: "/consumer" }],
+  },
+  {
+    id: "find",
+    keywords: ["find", "near me", "map", "which shop", "where can i", "open now", "hours"],
+    answer:
+      "Open the map, search for what you need (like 'bread' or 'airtime'), or pick a township. Only verified shops that have it in stock show up, nearest first. Each shop page shows opening hours, whether it's open now, prices and stock levels.",
+    links: [{ label: "Open the map", href: "/consumer" }],
+  },
+  {
+    id: "fees",
+    keywords: ["fee", "cost", "charge", "commission", "free", "how do you make money"],
+    answer:
+      "Joining MzansiConnect is free. On deals there's a 2% service fee on the goods value, shown before you pay. The delivery cost is split between shops by how many units each one bought. Reserving is free; you pay through TradeSafe only when the deal fills.",
+  },
+  {
+    id: "training",
+    keywords: ["training", "seta", "workshop", "class", "learn"],
+    answer:
+      "Under Compliance → Government training you can register for free in-person sessions run by the Wholesale & Retail SETA with SEDFA — registration, food safety, inventory and bookkeeping.",
+    links: [{ label: "Training sessions", href: "/owner/training" }],
+  },
+];
+
+/** Things people ask about that we don't do yet — answered honestly. */
+const ROADMAP: { keywords: string[]; answer: string }[] = [
+  { keywords: ["review", "rating", "stars"], answer: "Customer reviews and ratings aren't on MzansiConnect yet — they're planned for a later phase, once enough shops and customers are trading on the platform." },
+  { keywords: ["zulu", "sotho", "xhosa", "tswana", "language", "afrikaans"], answer: "MzansiConnect is English-only for now. isiZulu, Sesotho, isiXhosa and other languages are on the roadmap." },
+  { keywords: ["loan from kasieco", "credit", "lend"], answer: "MzansiConnect doesn't lend money itself. The Funding page points you to grants and loans from government and partners." },
+  { keywords: ["app store", "android app", "download app", "ios"], answer: "There's no app-store app yet — MzansiConnect runs in your phone's browser. A downloadable app is planned." },
+  { keywords: ["makro", "supplier list", "add supplier", "my own deal", "start a deal"], answer: "Deals come only from wholesalers MzansiConnect has partnered with, so prices and stock are checked. Shops can't start their own deals — but you can tell MzansiConnect what you'd like to see by sending a message from the bell at the top." },
+];
+
+const FALLBACK =
+  "We don't have that on MzansiConnect yet, but I've noted it as something to look at in future. I can help with payments, joining deals, deliveries and codes, Willing buyer & seller, getting verified, funding, your stock, or finding shops near you.";
+
+export const SUGGESTIONS = [
+  "How do I pay?",
+  "How does a deal work?",
+  "What is the delivery code?",
+  "What if the deal doesn't fill up?",
+  "How do I get verified?",
+  "What funding can I get?",
+  "Can customers order online?",
+];
+
+function score(text: string, keywords: string[]) {
+  return keywords.reduce((n, k) => (text.includes(k) ? n + k.length : n), 0);
+}
+
+export function answerQuestion(question: string): { text: string; links?: HelpLink[] } {
+  const q = question.toLowerCase();
+  if (/^\s*(hi|hello|hey|sawubona|dumela|molo|howzit)\b/.test(q)) {
+    return { text: "Sawubona! Ask me anything about payments, deals, deliveries, Willing buyer & seller, getting verified or funding." };
+  }
+  let best: { s: number; i?: Intent; r?: (typeof ROADMAP)[number] } = { s: 0 };
+  for (const i of INTENTS) {
+    const s = score(q, i.keywords);
+    if (s > best.s) best = { s, i };
+  }
+  for (const r of ROADMAP) {
+    const s = score(q, r.keywords) + 1; // a roadmap hit beats a weak generic match
+    if (s > best.s && score(q, r.keywords) > 0) best = { s, r };
+  }
+  if (best.r) return { text: best.r.answer };
+  if (best.i) return { text: best.i.answer, links: best.i.links };
+  return { text: FALLBACK };
+}
+
+/** The same knowledge, written out for Claude. */
+export function helpbotSystemPrompt(role: string) {
+  return [
+    "You are the MzansiConnect helper, inside a web platform for South African township (kasi) shops.",
+    `The person is using the app as a ${role === "owner" ? "shop owner" : role === "admin" ? "MzansiConnect admin" : role === "driver" ? "delivery driver" : "customer"}.`,
+    "Answer in 2–4 short, friendly, plain-English sentences. Use rands (R). No markdown headings.",
+    "Only describe features listed below. If asked about anything else, say MzansiConnect doesn't have it yet and it may come in a future phase — never invent features, prices or programme details.",
+    "FEATURES:",
+    ...INTENTS.map((i) => `- ${i.answer}`),
+    "NOT YET AVAILABLE (say so honestly):",
+    ...ROADMAP.map((r) => `- ${r.answer}`),
+  ].join("\n");
+}
+```
+
+**`components/HelpBot.tsx`** (138 lines). Replace the whole file with this:
+
+```tsx
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import clsx from "clsx";
+import { Bot, Send, X } from "lucide-react";
+import { useStore } from "@/lib/store";
+import { SUGGESTIONS, HelpLink } from "@/lib/helpbot";
+
+interface Msg {
+  role: "user" | "assistant";
+  content: string;
+  links?: HelpLink[];
+}
+
+export default function HelpBot() {
+  const { state } = useStore();
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msgs, setMsgs] = useState<Msg[]>([
+    { role: "assistant", content: "Sawubona! Ask me anything about MzansiConnect." },
+  ]);
+  const end = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [msgs, busy]);
+
+  async function ask(q: string) {
+    const text = q.trim();
+    if (!text || busy) return;
+    const next = [...msgs, { role: "user" as const, content: text }];
+    setMsgs(next);

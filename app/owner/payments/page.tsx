@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { ArrowDownLeft, ArrowUpRight, Clock, Lock, ShieldCheck, Store, Truck } from "lucide-react";
 import { useStore, useLiveRefresh, useMyShop } from "@/lib/store";
 import { formatCents } from "@/lib/pot";
-import { amountDue, dealsToPay, dueText, earnedAsDropPoint, feesDue, heldInEscrow, isMoneyIn, paymentsFor, PAYMENT_TX_LABEL } from "@/lib/payments";
+import { amountDue, dealsToPay, dueText, earnedAsDropPoint, feesDue, heldInEscrow, isMoneyIn, paymentsFor, PAYMENT_TX_LABEL, FEE_TITLE } from "@/lib/payments";
 import { Fee, PAYMENT_METHOD_LABEL, Pool } from "@/lib/types";
 import TradeSafeCheckout from "@/components/pay/TradeSafeCheckout";
 import { PageSkeleton } from "@/components/Skeleton";
@@ -88,7 +88,7 @@ export default function PaymentsPage() {
                 <Store size={18} />
               </span>
               <div className="min-w-0 flex-1 text-sm">
-                <p className="font-semibold text-ink">{f.kind === "drop-point" ? "Drop-point fee" : "Re-delivery fee"}</p>
+                <p className="font-semibold text-ink">{FEE_TITLE[f.kind]}</p>
                 <p className="text-xs text-ink/55">{f.note}</p>
               </div>
               <span className="num font-semibold text-ink">{formatCents(f.amountCents)}</span>

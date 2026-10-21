@@ -1,0 +1,7 @@
+      { href: "/owner", label: "Home", icon: LayoutGrid, exact: true },
+      { href: "/owner/pools", label: "Buy", icon: ShoppingCart, tour: "nav-buy" },
+      { href: "/owner/payments", label: "Payments", icon: Wallet, badge: dueCount || undefined, tour: "nav-payments" },
+      { href: "/owner/exchange", label: "Willing buyer & seller", icon: Handshake, tour: "nav-exchange" },
+      { href: "/owner/partner", label: "Drop point", icon: Store, badge: holdingForOthers || undefined },
+      { href: "/owner/stock", label: "My stock", icon: Boxes },
+      { href: "/owner/funding", label: "Funding", icon: Landmark, tour: "nav-funding" },

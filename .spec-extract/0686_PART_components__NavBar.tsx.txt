@@ -1,0 +1,12 @@
+                  {me.role === "owner" && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (pathname !== "/owner") router.push("/owner");
+                        startTour();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium text-ink/80 hover:bg-sand-100"
+                    >
+                      <Sparkles size={15} className="text-ember" /> Take the tour with Thuli
+                    </button>
+                  )}

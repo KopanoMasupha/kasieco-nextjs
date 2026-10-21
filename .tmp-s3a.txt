@@ -1,0 +1,105 @@
+
+**`components/pay/Countdown.tsx`** (33 lines). Replace the whole file with this:
+
+```tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import clsx from "clsx";
+import { Clock } from "lucide-react";
+import { formatCountdown } from "@/lib/payments";
+
+/** Re-render every second (one shared tick per component). */
+export function useNow(ms = 1000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(t);
+  }, [ms]);
+  return now;
+}
+
+/**
+ * A live payment countdown to a real deadline (the 48-hour window).
+ * Turns urgent (red) in the last 12 hours.
+ */
+export default function Countdown({ iso, label = "left to pay", className, icon = true }: { iso: string; label?: string; className?: string; icon?: boolean }) {
+  const now = useNow();
+  const ms = new Date(iso).getTime() - now;
+  const urgent = ms < 12 * 3600000;
+  return (
+    <span className={clsx("num inline-flex items-center gap-1 tabular-nums", urgent && "font-semibold", className)} data-urgent={urgent || undefined} aria-live="off">
+      {icon && <Clock size={13} className="shrink-0" />}
+      <span>{formatCountdown(ms)}</span>
+      {ms > 0 && label && <span className="font-normal opacity-80">{label}</span>}
+    </span>
+  );
+}
+```
+
+**`lib/payments.ts`**: add these two helpers at the bottom:
+
+```ts
+/** The soonest payment deadline among this shop's full deals (null when nothing is due). */
+export function nextPaymentDeadline(pools: Pool[], shopId: string): string | null {
+  const due = dealsToPay(pools, shopId)
+    .map((x) => x.pool.paymentDueAt)
+    .filter((d): d is string => !!d)
+    .sort();
+  return due[0] ?? null;
+}
+
+/** "1d 23:59:41", "05:12:09", or "Time is up". */
+export function formatCountdown(ms: number) {
+  if (ms <= 0) return "Time is up";
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400);
+  const two = (n: number) => String(n).padStart(2, "0");
+  const hms = `${two(Math.floor((s % 86400) / 3600))}:${two(Math.floor((s % 3600) / 60))}:${two(s % 60)}`;
+  return d > 0 ? `${d}d ${hms}` : hms;
+}
+```
+
+**`app/globals.css`**: the dark panel class, inside `@layer components`:
+
+```css
+  .glass-dark {
+    @apply rounded-2xl bg-ink text-white;
+  }
+```
+
+The Due now box itself is in `app/owner/page.tsx`. The full file is in section 8, because it also holds the newest change.
+
+---
+
+## 4. Admin layout fixes
+
+**Admin home, "Deals by step"** (`app/admin/page.tsx`): long deal names no longer run over the count badges.
+- The step label and count badge use `shrink-0`.
+- Deal names use `min-w-0 flex-1 truncate`.
+
+**Admin deals, "Filling up"** (`components/pot/PoolCard.tsx`): cards no longer overlap.
+- Smaller images: 56 / 68 px, down from 64 / 76.
+- `overflow-hidden` on the card, `truncate` on the supplier name.
+- Badges get their own `flex-wrap` row.
+- Two columns start at `md` (768 px) instead of `lg`.
+
+
+### The code
+
+**`app/admin/page.tsx`**: the "Deals by step" list:
+
+```tsx
+          <h2 className="mb-3 font-semibold text-ink">Deals by step</h2>
+          <ul className="space-y-1.5">
+            {DEAL_STEPS.map((s) => {
+              const list = by(s.status);
+              return (
+                <li key={s.status} className="flex items-center gap-2 rounded-xl bg-sand-50 px-3 py-2 text-sm">
+                  <span className="shrink-0 text-ink/70">{s.label}</span>
+                  <span className="min-w-0 flex-1 truncate text-right text-xs text-ink/45">{list.map((p) => p.productName.split(" ").slice(0, 2).join(" ")).join(", ")}</span>
+                  <span className={clsx("flex h-6 min-w-[24px] shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold", list.length ? "bg-ink text-white" : "bg-ink/5 text-ink/35")}>{list.length}</span>
+                </li>
+              );
+            })}
+          </ul>

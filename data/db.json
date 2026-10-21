@@ -1932,7 +1932,7 @@
           "shopId": "shop-thandi",
           "shopName": "Thandi's Spaza",
           "township": "Mamelodi",
-          "qty": 4,
+          "qty": 13,
           "joinedAt": "2026-10-18T07:25:30.026Z",
           "prefs": {
             "days": [
@@ -1943,8 +1943,8 @@
               5
             ],
             "time": "any",
-            "ifMissed": "next-run",
-            "agreedAt": "2026-10-18T07:25:30.026Z"
+            "ifMissed": "retry-later",
+            "agreedAt": "2026-10-21T00:12:20.416Z"
           }
         }
       ],
@@ -1953,7 +1953,7 @@
       "ledger": [],
       "createdAt": "2026-10-18T07:25:29.998Z",
       "closesAt": "2026-10-22T07:25:29.998Z",
-      "status": "open",
+      "status": "target-reached",
       "events": [
         {
           "at": "2026-10-18T07:25:29.998Z",
@@ -1979,6 +1979,21 @@
           "at": "2026-10-18T07:25:30.026Z",
           "text": "Thandi's Spaza reserved 4 cases (12 × 750ml).",
           "by": "Thandi's Spaza"
+        },
+        {
+          "at": "2026-10-20T23:52:00.471Z",
+          "text": "Thandi's Spaza reserved 6 cases (12 × 750ml).",
+          "by": "Thandi's Spaza"
+        },
+        {
+          "at": "2026-10-21T00:12:20.417Z",
+          "text": "Thandi's Spaza reserved 3 cases (12 × 750ml).",
+          "by": "Thandi's Spaza"
+        },
+        {
+          "at": "2026-10-21T00:12:20.419Z",
+          "text": "Deal full — all 30 cases (12 × 750ml) reserved. Price locked at R295. Shops have 48 hours to pay into TradeSafe escrow.",
+          "by": "System"
         }
       ],
       "deliveryCodes": {
@@ -1996,12 +2011,15 @@
         "shop-bongani": "2026-10-18T07:25:30.026Z",
         "shop-tebogo": "2026-10-18T07:25:30.026Z",
         "shop-ayanda": "2026-10-18T07:25:30.026Z",
-        "shop-thandi": "2026-10-18T07:38:23.835Z",
+        "shop-thandi": "2026-10-21T00:12:20.418Z",
         "shop-sipho": "2026-10-18T07:25:30.026Z",
         "shop-kgomotso": "2026-10-18T07:25:30.026Z",
         "shop-mama-joy": "2026-10-18T07:25:30.026Z",
         "shop-butchery": "2026-10-18T07:25:30.026Z"
-      }
+      },
+      "priceLockedCents": 29500,
+      "targetReachedAt": "2026-10-21T00:12:20.418Z",
+      "paymentDueAt": "2026-10-23T00:12:20.418Z"
     },
     {
       "id": "deal-1792308329998-4228",
@@ -2165,7 +2183,7 @@
         "shop-kgomotso": "2026-10-18T07:25:30.026Z",
         "shop-butchery": "2026-10-18T07:25:30.026Z",
         "shop-mama-joy": "2026-10-18T07:25:30.026Z",
-        "shop-thandi": "2026-10-18T07:25:30.026Z",
+        "shop-thandi": "2026-10-21T00:15:28.871Z",
         "shop-bongani": "2026-10-18T07:25:30.026Z",
         "shop-ayanda": "2026-10-18T07:25:30.026Z",
         "shop-tebogo": "2026-10-18T07:25:30.026Z"
@@ -5552,6 +5570,61 @@
       "toId": "shop-sipho",
       "dealId": "deal-1792308329999-2253",
       "text": "The White sugar 2kg deal is full! Final price R368 per bale (10 × 2kg). Please pay R1 976.80 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792541540421-4282",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T00:12:20.421Z",
+      "read": false,
+      "toRole": "admin",
+      "toId": "admin",
+      "dealId": "deal-1792308329999-3892",
+      "text": "Cooking oil 750ml is full (30 cases (12 × 750ml), 4 shops). Payments are due within 48 hours."
+    },
+    {
+      "id": "msg-1792541540421-8725",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T00:12:20.421Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-bongani",
+      "dealId": "deal-1792308329999-3892",
+      "text": "The Cooking oil 750ml deal is full! Final price R295 per case (12 × 750ml). Please pay R1 895.40 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792541540421-4345",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T00:12:20.421Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-tebogo",
+      "dealId": "deal-1792308329999-3892",
+      "text": "The Cooking oil 750ml deal is full! Final price R295 per case (12 × 750ml). Please pay R1 579.50 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792541540421-2355",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T00:12:20.421Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-ayanda",
+      "dealId": "deal-1792308329999-3892",
+      "text": "The Cooking oil 750ml deal is full! Final price R295 per case (12 × 750ml). Please pay R1 895.40 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792541540421-1385",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T00:12:20.421Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-thandi",
+      "dealId": "deal-1792308329999-3892",
+      "text": "The Cooking oil 750ml deal is full! Final price R295 per case (12 × 750ml). Please pay R4 106.70 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
     }
   ],
   "approvals": [
@@ -5702,6 +5775,17 @@
       "confirmedBy": [],
       "status": "open",
       "createdAt": "2026-09-17T08:00:00Z"
+    },
+    {
+      "id": "thread-1792541907045",
+      "listingId": "listing-sipho-oil",
+      "shopAId": "shop-sipho",
+      "shopBId": "shop-thandi",
+      "messages": [],
+      "offers": [],
+      "confirmedBy": [],
+      "status": "open",
+      "createdAt": "2026-10-21T00:18:27.045Z"
     }
   ],
   "trainingSessions": [

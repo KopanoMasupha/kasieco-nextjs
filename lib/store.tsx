@@ -6,6 +6,7 @@ import {
   Good,
   Pool,
   StockListing,
+  CourierJob,
   ExchangeThread,
   TrainingSession,
   VerificationRequest,
@@ -43,6 +44,7 @@ interface SharedState {
   pools: Pool[];
   listings: StockListing[];
   threads: ExchangeThread[];
+  courierJobs: CourierJob[];
   trainingSessions: TrainingSession[];
   verificationRequests: VerificationRequest[];
   certificates: Certificate[];
@@ -66,6 +68,7 @@ const emptyShared: SharedState = {
   pools: [],
   listings: [],
   threads: [],
+  courierJobs: [],
   trainingSessions: [],
   verificationRequests: [],
   certificates: [],
@@ -83,6 +86,7 @@ interface LocalState {
   myShopId: string; // set when an owner is signed in
   myDriverId: string; // set when a driver is signed in
   hydrated: boolean;
+  cart: Array<{ poolId: string; qty: number }>;
 }
 
 const initialLocal: LocalState = {
@@ -91,6 +95,7 @@ const initialLocal: LocalState = {
   myShopId: "",
   myDriverId: "",
   hydrated: false,
+  cart: [],
 };
 
 type LocalAction =
@@ -98,7 +103,10 @@ type LocalAction =
   | { type: "SET_ROLE"; role: Role }
   | { type: "SET_MY_SHOP"; shopId: string }
   | { type: "SIGNED_IN"; userId: string; role: Role; shopId?: string; driverId?: string }
-  | { type: "SIGN_OUT" };
+  | { type: "SIGN_OUT" }
+  | { type: "ADD_TO_CART"; poolId: string; qty: number }
+  | { type: "REMOVE_FROM_CART"; poolId: string }
+  | { type: "CLEAR_CART" };
 
 function localReducer(state: LocalState, action: LocalAction): LocalState {
   switch (action.type) {
@@ -111,7 +119,19 @@ function localReducer(state: LocalState, action: LocalAction): LocalState {
     case "SIGNED_IN":
       return { ...state, userId: action.userId, role: action.role, myShopId: action.shopId || "", myDriverId: action.driverId || "" };
     case "SIGN_OUT":
-      return { ...state, userId: "", myShopId: "", myDriverId: "", role: "consumer" };
+      return { ...state, userId: "", myShopId: "", myDriverId: "", role: "consumer", cart: [] };
+    case "ADD_TO_CART":
+      return {
+        ...state,
+        cart: [...state.cart, { poolId: action.poolId, qty: action.qty }],
+      };
+    case "REMOVE_FROM_CART":
+      return {
+        ...state,
+        cart: state.cart.filter((item) => item.poolId !== action.poolId),
+      };
+    case "CLEAR_CART":
+      return { ...state, cart: [] };
     default:
       return state;
   }

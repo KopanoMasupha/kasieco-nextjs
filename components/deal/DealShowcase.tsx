@@ -25,7 +25,7 @@ export default function DealShowcase({ pool }: { pool: Pool }) {
   const rating = wholesalerRating(state.pools, pool.wholesalerId);
 
   return (
-    <section className="card overflow-hidden">
+    <section className="card overflow-hidden" data-tour="deal-showcase">
       <div className="grid gap-0 sm:grid-cols-[minmax(0,240px)_minmax(0,1fr)]">
         <div className="relative bg-sand-50 p-4 sm:p-5">
           <ProductImage name={pool.productName} src={pool.photo} count={per} size="fill" className="mx-auto max-w-[200px] sm:max-w-none" />
