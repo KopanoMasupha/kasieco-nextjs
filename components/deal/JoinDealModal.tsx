@@ -1,22 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import clsx from "clsx";
-import { X, CheckCircle2, Clock, Loader2, Lock, Minus, Plus, ShieldCheck, TrendingDown, PartyPopper } from "lucide-react";
+import { X, CheckCircle2, Clock, Loader2, Lock, Minus, Plus, ShieldCheck, TrendingDown, PartyPopper, ShoppingCart } from "lucide-react";
 import { Pool, Shop } from "@/lib/types";
 import { formatCents, quoteJoin, toCents } from "@/lib/pot";
 import { useStore } from "@/lib/store";
+import { useCart } from "@/lib/cart";
 import DeliveryChoices, { DEFAULT_DRAFT, PrefsDraft, draftProblem } from "./DeliveryChoices";
 import { units } from "@/lib/units";
 import ProductImage from "@/components/ProductImage";
 import { itemsPerUnit, popularQty } from "@/lib/products";
 
-type Stage = "form" | "choices" | "saving" | "done" | "error";
+type Stage = "form" | "choices" | "saving" | "done" | "error" | "added";
 
 /** Reserve units in a wholesaler deal — free. Shops pay through TradeSafe only once the deal fills. */
 export default function JoinDealModal({ pool, shop, onClose }: { pool: Pool; shop: Shop; onClose: () => void }) {
   const { state, dispatch } = useStore();
+  const cart = useCart();
   const full = pool.status === "target-reached";
   const remaining = full ? 99 : pool.minQty - pool.commitments.reduce((s, c) => s + c.qty, 0);
   const popular = popularQty(pool);
@@ -62,7 +65,7 @@ export default function JoinDealModal({ pool, shop, onClose }: { pool: Pool; sho
             <p className="text-xs font-medium text-ink/45">
               {pool.productName} · {pool.supplierName}
             </p>
-            <h2 className="text-lg font-bold text-ink">{stage === "choices" ? "Delivery" : full ? "Join the waitlist" : stage === "form" ? "How many?" : "Reserve"}</h2>
+            <h2 className="text-lg font-bold text-ink">{stage === "choices" ? "Delivery" : stage === "added" ? "Added to your cart" : full ? "Join the waitlist" : stage === "form" ? "How many?" : "Reserve"}</h2>
           </div>
           {stage !== "saving" && (
             <button onClick={onClose} className="rounded-full p-1.5 text-ink/40 hover:bg-sand-100" aria-label="Close">
@@ -144,8 +147,32 @@ export default function JoinDealModal({ pool, shop, onClose }: { pool: Pool; sho
                 <li className="rounded-lg bg-ink/[0.04] px-2 py-2"><Clock size={13} className="mx-auto mb-1 text-ink/50" />48h to pay</li>
               </ul>
 
+              {!full && (
+                <button
+                  onClick={() => {
+                    cart.add(pool.id, qty);
+                    setStage("added");
+                  }}
+                  className="btn-outline w-full py-3.5 text-sm"
+                >
+                  <ShoppingCart size={15} /> Add {qty} to cart
+                </button>
+              )}
               <button onClick={() => setStage("choices")} className="btn-ember w-full py-3.5 text-sm">
                 Next
+              </button>
+            </motion.div>
+          )}
+
+          {stage === "added" && (
+            <motion.div key="added" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-5 space-y-3 text-center">
+              <ShoppingCart size={30} className="mx-auto text-leaf" />
+              <p className="text-sm text-ink/60">{qty} {units(pool.unitLabel, qty)} added. Nothing is reserved until you choose delivery and confirm.</p>
+              <Link href="/owner/cart" onClick={onClose} className="btn-ember w-full py-3 text-sm">
+                View cart
+              </Link>
+              <button onClick={onClose} className="w-full py-2 text-sm text-ink/50 underline">
+                Keep browsing
               </button>
             </motion.div>
           )}

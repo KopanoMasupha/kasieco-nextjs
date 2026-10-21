@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "users": [
     {
       "id": "user-shop-thandi",
@@ -1717,6 +1717,20 @@
           "id": "tx-TS-08V313",
           "createdAt": "2026-10-18T07:25:30.026Z",
           "balanceAfterCents": 751184
+        },
+        {
+          "type": "contribution",
+          "shopId": "shop-thandi",
+          "shopName": "Thandi's Spaza",
+          "qty": 6,
+          "amountCents": 237216,
+          "method": "card",
+          "unitPriceCents": 36800,
+          "note": "Paid 6 bales (10 × 2kg) at the final price",
+          "ref": "TS-8BVY01",
+          "id": "tx-TS-8BVY01",
+          "createdAt": "2026-10-21T02:01:22.018Z",
+          "balanceAfterCents": 988400
         }
       ],
       "createdAt": "2026-10-18T07:25:29.999Z",
@@ -1787,6 +1801,11 @@
           "at": "2026-10-18T07:25:30.026Z",
           "text": "Tebogo's Tuckshop joined the waitlist for 5 bales (10 × 2kg).",
           "by": "Tebogo's Tuckshop"
+        },
+        {
+          "at": "2026-10-21T02:01:22.018Z",
+          "text": "Thandi's Spaza paid R2 372.16 into TradeSafe escrow (Bank card).",
+          "by": "Thandi's Spaza"
         }
       ],
       "deliveryCodes": {
@@ -1825,7 +1844,7 @@
       "tripIds": [],
       "ratings": [],
       "views": {
-        "shop-thandi": "2026-10-18T07:38:05.981Z",
+        "shop-thandi": "2026-10-21T01:56:10.102Z",
         "shop-mama-joy": "2026-10-18T07:25:30.026Z",
         "shop-bongani": "2026-10-18T07:25:30.026Z",
         "shop-kgomotso": "2026-10-18T07:25:30.026Z",
@@ -2132,6 +2151,25 @@
             "partnerShopId": "shop-thandi",
             "agreedAt": "2026-10-18T07:25:30.026Z"
           }
+        },
+        {
+          "shopId": "shop-thandi",
+          "shopName": "Thandi's Spaza",
+          "township": "Mamelodi",
+          "qty": 17,
+          "joinedAt": "2026-10-21T02:01:08.965Z",
+          "prefs": {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "time": "any",
+            "ifMissed": "retry-later",
+            "agreedAt": "2026-10-21T02:01:08.965Z"
+          }
         }
       ],
       "deliveryFeeCents": 90000,
@@ -2139,7 +2177,7 @@
       "ledger": [],
       "createdAt": "2026-10-18T07:25:29.998Z",
       "closesAt": "2026-10-24T07:25:29.998Z",
-      "status": "open",
+      "status": "target-reached",
       "events": [
         {
           "at": "2026-10-18T07:25:29.998Z",
@@ -2165,13 +2203,24 @@
           "at": "2026-10-18T07:25:30.026Z",
           "text": "Mama Joy's Kota Corner reserved 5 bales (10 × 5kg).",
           "by": "Mama Joy's Kota Corner"
+        },
+        {
+          "at": "2026-10-21T02:01:08.965Z",
+          "text": "Thandi's Spaza reserved 17 bales (10 × 5kg).",
+          "by": "Thandi's Spaza"
+        },
+        {
+          "at": "2026-10-21T02:01:08.965Z",
+          "text": "Deal full — all 40 bales (10 × 5kg) reserved. Price locked at R670. Shops have 48 hours to pay into TradeSafe escrow.",
+          "by": "System"
         }
       ],
       "deliveryCodes": {
         "shop-sipho": "2159",
         "shop-kgomotso": "9614",
         "shop-butchery": "1395",
-        "shop-mama-joy": "3834"
+        "shop-mama-joy": "3834",
+        "shop-thandi": "4671"
       },
       "backupCodes": {},
       "deliveryWithinDays": 5,
@@ -2183,11 +2232,14 @@
         "shop-kgomotso": "2026-10-18T07:25:30.026Z",
         "shop-butchery": "2026-10-18T07:25:30.026Z",
         "shop-mama-joy": "2026-10-18T07:25:30.026Z",
-        "shop-thandi": "2026-10-21T00:15:28.871Z",
+        "shop-thandi": "2026-10-21T02:01:08.965Z",
         "shop-bongani": "2026-10-18T07:25:30.026Z",
         "shop-ayanda": "2026-10-18T07:25:30.026Z",
         "shop-tebogo": "2026-10-18T07:25:30.026Z"
-      }
+      },
+      "priceLockedCents": 67000,
+      "targetReachedAt": "2026-10-21T02:01:08.965Z",
+      "paymentDueAt": "2026-10-23T02:01:08.965Z"
     },
     {
       "id": "deal-1792308329998-875",
@@ -3143,6 +3195,17 @@
       "ref": "TS-08V313",
       "id": "pay-TS-08V313-deal-payment",
       "createdAt": "2026-10-18T07:25:30.026Z"
+    },
+    {
+      "shopId": "shop-thandi",
+      "type": "deal-payment",
+      "amountCents": 237216,
+      "method": "card",
+      "dealId": "deal-1792308329999-2253",
+      "note": "White sugar 2kg — held in escrow until delivery",
+      "ref": "TS-8BVY01",
+      "id": "pay-TS-8BVY01-deal-payment",
+      "createdAt": "2026-10-21T02:01:22.018Z"
     }
   ],
   "fees": [
@@ -5625,6 +5688,72 @@
       "toId": "shop-thandi",
       "dealId": "deal-1792308329999-3892",
       "text": "The Cooking oil 750ml deal is full! Final price R295 per case (12 × 750ml). Please pay R4 106.70 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792548068966-8652",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T02:01:08.966Z",
+      "read": false,
+      "toRole": "admin",
+      "toId": "admin",
+      "dealId": "deal-1792308329998-4228",
+      "text": "Maize meal 5kg is full (40 bales (10 × 5kg), 5 shops). Payments are due within 48 hours."
+    },
+    {
+      "id": "msg-1792548068966-574",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T02:01:08.966Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-sipho",
+      "dealId": "deal-1792308329998-4228",
+      "text": "The Maize meal 5kg deal is full! Final price R670 per bale (10 × 5kg). Please pay R5 647.20 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792548068966-5003",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T02:01:08.966Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-kgomotso",
+      "dealId": "deal-1792308329998-4228",
+      "text": "The Maize meal 5kg deal is full! Final price R670 per bale (10 × 5kg). Please pay R4 235.40 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792548068966-2906",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T02:01:08.966Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-butchery",
+      "dealId": "deal-1792308329998-4228",
+      "text": "The Maize meal 5kg deal is full! Final price R670 per bale (10 × 5kg). Please pay R2 823.60 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792548068966-4693",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T02:01:08.966Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-mama-joy",
+      "dealId": "deal-1792308329998-4228",
+      "text": "The Maize meal 5kg deal is full! Final price R670 per bale (10 × 5kg). Please pay R3 529.50 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
+    },
+    {
+      "id": "msg-1792548068966-3841",
+      "fromName": "MzansiConnect",
+      "fromRole": "system",
+      "createdAt": "2026-10-21T02:01:08.966Z",
+      "read": false,
+      "toRole": "owner",
+      "toId": "shop-thandi",
+      "dealId": "deal-1792308329998-4228",
+      "text": "The Maize meal 5kg deal is full! Final price R670 per bale (10 × 5kg). Please pay R12 000.30 within 48 hours — it's held safely by TradeSafe until your stock is delivered."
     }
   ],
   "approvals": [
@@ -6216,5 +6345,6 @@
     }
   ],
   "fundingInterests": [],
-  "fundingProfiles": []
+  "fundingProfiles": [],
+  "courierJobs": []
 }
